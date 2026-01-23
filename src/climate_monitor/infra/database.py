@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     rssi INTEGER,
     month_ts TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS date_trunc('month', ts),
     PRIMARY KEY (device_id, ts, month_ts)
-) CLUSTERED BY (device_id) INTO 4 SHARDS
+) CLUSTERED BY (device_id) INTO 1 SHARDS
   PARTITIONED BY (month_ts)
 """
 
@@ -208,7 +208,7 @@ class CrateDBClient:
             cursor.execute(
                 INSERT_SQL,
                 (
-                    reading.timestamp,
+                    reading.timestamp.isoformat(),  # 轉換為 ISO 8601 字串
                     reading.device_id,
                     reading.device_name,
                     reading.temperature,
@@ -233,7 +233,7 @@ class CrateDBClient:
         with self._get_cursor() as cursor:
             values = [
                 (
-                    r.timestamp,
+                    r.timestamp.isoformat(),  # 轉換為 ISO 8601 字串
                     r.device_id,
                     r.device_name,
                     r.temperature,

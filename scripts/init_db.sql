@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     rssi INTEGER,                  -- 單位：dBm
     
     PRIMARY KEY (device_id, ts, month_ts)
-) CLUSTERED BY (device_id) INTO 4 SHARDS
+) CLUSTERED BY (device_id) INTO 1 SHARDS
   PARTITIONED BY (month_ts);
 
 -- -----------------------------------------------------------------------------
@@ -134,3 +134,40 @@ ORDER BY month_asia_taipei DESC, device_name;
 -- FROM hourly_metrics 
 -- WHERE device_name IN ('Tapo-T315-a', 'Living Room')
 -- ORDER BY hour_asia_taipei DESC, device_name;
+
+-- -----------------------------------------------------------------------------
+-- 資料庫維護範例 (Database Maintenance)
+-- -----------------------------------------------------------------------------
+
+-- 監控 1: 檢查 Shard 使用率（避免達到上限）
+-- SELECT 
+--     sum(number_of_shards) as current_shards,
+--     (SELECT settings['cluster']['max_shards_per_node']::int FROM sys.cluster) as max_shards,
+--     (current_shards * 100.0 / max_shards) as usage_percent
+-- FROM information_schema.table_partitions 
+-- WHERE table_schema = 'doc';
+
+-- 監控 2: 列出所有分割區（檢查是否有異常舊資料）
+-- SELECT 
+--     partition_ident, 
+--     values['month_ts'] as month,
+--     number_of_shards,
+--     (SELECT count(*) FROM sensor_readings WHERE month_ts = values['month_ts']) as record_count
+-- FROM information_schema.table_partitions 
+-- WHERE table_schema = 'doc'
+-- ORDER BY values['month_ts'] DESC;
+
+-- 維護 1: 清理 12 個月前的舊資料（執行前請確認備份！）
+-- DELETE FROM sensor_readings 
+-- WHERE month_ts < current_timestamp - INTERVAL '12' MONTH;
+
+-- 維護 2: 手動最佳化資料表（適用於大量刪除後）
+-- OPTIMIZE TABLE sensor_readings;
+
+-- 維護 3: 檢查資料完整性（確認 timestamp 格式正確）
+-- SELECT 
+--     min(ts) as oldest_record,
+--     max(ts) as newest_record,
+--     count(*) as total_records,
+--     count(DISTINCT month_ts) as partition_count
+-- FROM sensor_readings;
