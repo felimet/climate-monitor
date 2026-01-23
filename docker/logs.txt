@@ -1,0 +1,776 @@
+[2026-01-23 19:04:58 +0800] [7] [INFO] Starting gunicorn 23.0.0
+[2026-01-23 19:04:58 +0800] [7] [INFO] Listening at: http://0.0.0.0:8088 (7)
+[2026-01-23 19:04:58 +0800] [7] [INFO] Using worker: gthread
+[2026-01-23 19:04:58 +0800] [8] [INFO] Booting worker with pid: 8
+/app/.venv/lib/python3.10/site-packages/flask_limiter/extension.py:324: UserWarning: Using the in-memory storage for tracking rate limits as no storage was explicitly specified. This is not recommended for production use. See: https://flask-limiter.readthedocs.io#configuring-a-storage-backend for documentation about configuring the storage backend.
+  warnings.warn(
+2026-01-23 19:05:15,797:INFO:alembic.runtime.migration:Context impl SQLiteImpl.
+2026-01-23 19:05:15,797:INFO:alembic.runtime.migration:Will assume non-transactional DDL.
+2026-01-23 19:05:16,693:INFO:superset.app:Pending database migrations: run 'superset db upgrade'
+127.0.0.1 - - [23/Jan/2026:19:05:29 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+2026-01-23 19:05:52,885:WARNING:superset.views.error_handling:Exception
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 923, in welcome
+    if not g.user or not get_user_id():
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/manager.py", line 2166, in load_user
+    user = self.get_user_by_id(int(pk))
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/sqla/manager.py", line 294, in get_user_by_id
+    return self.session.get(self.user_model, pk)
+  File "<string>", line 2, in get
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2026-01-23 19:05:52,992:ERROR:superset.views.error_handling:(sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 923, in welcome
+    if not g.user or not get_user_id():
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/manager.py", line 2166, in load_user
+    user = self.get_user_by_id(int(pk))
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/sqla/manager.py", line 294, in get_user_by_id
+    return self.session.get(self.user_model, pk)
+  File "<string>", line 2, in get
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+172.18.0.1 - - [23/Jan/2026:19:05:53 +0800] "GET /superset/welcome/ HTTP/1.1" 500 0 "http://localhost:8088/superset/dashboard/1/?native_filters_key=U8maH80Namk" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:05:57 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:06:01 +0800] "GET / HTTP/1.1" 302 223 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-23 19:06:01,958:WARNING:superset.views.error_handling:Exception
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: user_attribute
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 929, in welcome
+    .scalar()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2893, in scalar
+    ret = self.one()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2870, in one
+    return self._iter().one()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2916, in _iter
+    result = self.session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user_attribute
+[SQL: SELECT user_attribute.welcome_dashboard_id AS user_attribute_welcome_dashboard_id 
+FROM user_attribute 
+WHERE user_attribute.user_id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2026-01-23 19:06:01,960:ERROR:superset.views.error_handling:(sqlite3.OperationalError) no such table: user_attribute
+[SQL: SELECT user_attribute.welcome_dashboard_id AS user_attribute_welcome_dashboard_id 
+FROM user_attribute 
+WHERE user_attribute.user_id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: user_attribute
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 929, in welcome
+    .scalar()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2893, in scalar
+    ret = self.one()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2870, in one
+    return self._iter().one()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2916, in _iter
+    result = self.session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user_attribute
+[SQL: SELECT user_attribute.welcome_dashboard_id AS user_attribute_welcome_dashboard_id 
+FROM user_attribute 
+WHERE user_attribute.user_id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+172.18.0.1 - - [23/Jan/2026:19:06:01 +0800] "GET /superset/welcome/ HTTP/1.1" 500 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:06:24 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+127.0.0.1 - - [23/Jan/2026:19:06:52 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:06:58 +0800] "GET / HTTP/1.1" 302 223 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-23 19:07:01,593:WARNING:superset.views.error_handling:Exception
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: themes
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 935, in welcome
+    "common": common_bootstrap_payload(),
+  File "/app/superset/views/base.py", line 456, in common_bootstrap_payload
+    **cached_common_bootstrap_data(utils.get_user_id(), get_locale()),
+  File "/app/.venv/lib/python3.10/site-packages/flask_caching/__init__.py", line 899, in decorated_function
+    rv = self._call_fn(f, *args, **kwargs)
+  File "/app/.venv/lib/python3.10/site-packages/flask_caching/__init__.py", line 185, in _call_fn
+    return ensure_sync(fn)(*args, **kwargs)
+  File "/app/superset/views/base.py", line 449, in cached_common_bootstrap_data
+    bootstrap_data.update(get_theme_bootstrap_data())
+  File "/app/superset/views/base.py", line 310, in get_theme_bootstrap_data
+    default_theme_model = ThemeDAO.find_system_default()
+  File "/app/superset/daos/theme.py", line 42, in find_system_default
+    db.session.query(Theme).filter(Theme.is_system_default.is_(True)).all()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2773, in all
+    return self._iter().all()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2916, in _iter
+    result = self.session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: themes
+[SQL: SELECT themes.uuid AS themes_uuid, themes.created_on AS themes_created_on, themes.changed_on AS themes_changed_on, themes.id AS themes_id, themes.theme_name AS themes_theme_name, themes.json_data AS themes_json_data, themes.is_system AS themes_is_system, themes.is_system_default AS themes_is_system_default, themes.is_system_dark AS themes_is_system_dark, themes.created_by_fk AS themes_created_by_fk, themes.changed_by_fk AS themes_changed_by_fk 
+FROM themes 
+WHERE themes.is_system_default IS 1]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2026-01-23 19:07:01,631:ERROR:superset.views.error_handling:(sqlite3.OperationalError) no such table: themes
+[SQL: SELECT themes.uuid AS themes_uuid, themes.created_on AS themes_created_on, themes.changed_on AS themes_changed_on, themes.id AS themes_id, themes.theme_name AS themes_theme_name, themes.json_data AS themes_json_data, themes.is_system AS themes_is_system, themes.is_system_default AS themes_is_system_default, themes.is_system_dark AS themes_is_system_dark, themes.created_by_fk AS themes_created_by_fk, themes.changed_by_fk AS themes_changed_by_fk 
+FROM themes 
+WHERE themes.is_system_default IS 1]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: themes
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 935, in welcome
+    "common": common_bootstrap_payload(),
+  File "/app/superset/views/base.py", line 456, in common_bootstrap_payload
+    **cached_common_bootstrap_data(utils.get_user_id(), get_locale()),
+  File "/app/.venv/lib/python3.10/site-packages/flask_caching/__init__.py", line 899, in decorated_function
+    rv = self._call_fn(f, *args, **kwargs)
+  File "/app/.venv/lib/python3.10/site-packages/flask_caching/__init__.py", line 185, in _call_fn
+    return ensure_sync(fn)(*args, **kwargs)
+  File "/app/superset/views/base.py", line 449, in cached_common_bootstrap_data
+    bootstrap_data.update(get_theme_bootstrap_data())
+  File "/app/superset/views/base.py", line 310, in get_theme_bootstrap_data
+    default_theme_model = ThemeDAO.find_system_default()
+  File "/app/superset/daos/theme.py", line 42, in find_system_default
+    db.session.query(Theme).filter(Theme.is_system_default.is_(True)).all()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2773, in all
+    return self._iter().all()
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 2916, in _iter
+    result = self.session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: themes
+[SQL: SELECT themes.uuid AS themes_uuid, themes.created_on AS themes_created_on, themes.changed_on AS themes_changed_on, themes.id AS themes_id, themes.theme_name AS themes_theme_name, themes.json_data AS themes_json_data, themes.is_system AS themes_is_system, themes.is_system_default AS themes_is_system_default, themes.is_system_dark AS themes_is_system_dark, themes.created_by_fk AS themes_created_by_fk, themes.changed_by_fk AS themes_changed_by_fk 
+FROM themes 
+WHERE themes.is_system_default IS 1]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+172.18.0.1 - - [23/Jan/2026:19:07:01 +0800] "GET /superset/welcome/ HTTP/1.1" 500 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-23 19:07:05,132:WARNING:superset.views.error_handling:Exception
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 923, in welcome
+    if not g.user or not get_user_id():
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/manager.py", line 2166, in load_user
+    user = self.get_user_by_id(int(pk))
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/sqla/manager.py", line 294, in get_user_by_id
+    return self.session.get(self.user_model, pk)
+  File "<string>", line 2, in get
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2026-01-23 19:07:05,133:ERROR:superset.views.error_handling:(sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 923, in welcome
+    if not g.user or not get_user_id():
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/manager.py", line 2166, in load_user
+    user = self.get_user_by_id(int(pk))
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/sqla/manager.py", line 294, in get_user_by_id
+    return self.session.get(self.user_model, pk)
+  File "<string>", line 2, in get
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+172.18.0.1 - - [23/Jan/2026:19:07:05 +0800] "GET /superset/welcome/ HTTP/1.1" 500 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:07:12 +0800] "GET / HTTP/1.1" 302 223 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-23 19:07:17,680:WARNING:superset.views.error_handling:Exception
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 923, in welcome
+    if not g.user or not get_user_id():
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/manager.py", line 2166, in load_user
+    user = self.get_user_by_id(int(pk))
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/sqla/manager.py", line 294, in get_user_by_id
+    return self.session.get(self.user_model, pk)
+  File "<string>", line 2, in get
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2026-01-23 19:07:17,680:ERROR:superset.views.error_handling:(sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/app/.venv/lib/python3.10/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/superset/utils/log.py", line 304, in wrapper
+    value = f(*args, **kwargs)
+  File "/app/superset/views/core.py", line 923, in welcome
+    if not g.user or not get_user_id():
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "/app/.venv/lib/python3.10/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/app/.venv/lib/python3.10/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/manager.py", line 2166, in load_user
+    user = self.get_user_by_id(int(pk))
+  File "/app/.venv/lib/python3.10/site-packages/flask_appbuilder/security/sqla/manager.py", line 294, in get_user_by_id
+    return self.session.get(self.user_model, pk)
+  File "<string>", line 2, in get
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1717, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1710, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 334, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1577, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1953, in _execute_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2134, in _handle_dbapi_exception
+    util.raise_(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1910, in _execute_context
+    self.dialect.do_execute(
+  File "/app/.venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 736, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+[SQL: SELECT ab_user.id AS ab_user_id, ab_user.first_name AS ab_user_first_name, ab_user.last_name AS ab_user_last_name, ab_user.username AS ab_user_username, ab_user.password AS ab_user_password, ab_user.active AS ab_user_active, ab_user.email AS ab_user_email, ab_user.last_login AS ab_user_last_login, ab_user.login_count AS ab_user_login_count, ab_user.fail_login_count AS ab_user_fail_login_count, ab_user.created_on AS ab_user_created_on, ab_user.changed_on AS ab_user_changed_on, ab_user.created_by_fk AS ab_user_created_by_fk, ab_user.changed_by_fk AS ab_user_changed_by_fk 
+FROM ab_user 
+WHERE ab_user.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+172.18.0.1 - - [23/Jan/2026:19:07:17 +0800] "GET /superset/welcome/ HTTP/1.1" 500 0 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:07:18 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+127.0.0.1 - - [23/Jan/2026:19:07:47 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:08:08 +0800] "GET / HTTP/1.1" 302 223 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:08 +0800] "GET /superset/welcome/ HTTP/1.1" 200 5962 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:09 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:10 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 917 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:10 +0800] "GET /api/v1/saved_query/?q=(filters:!((col:created_by,opr:rel_o_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 492 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:10 +0800] "GET /api/v1/log/recent_activity/?q=(distinct:!f,page_size:24) HTTP/1.1" 200 14 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:10 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:10 +0800] "GET /api/v1/saved_query/_info?q=(keys:!(permissions)) HTTP/1.1" 200 54 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:11 +0800] "GET /api/v1/dashboard/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:11 +0800] "GET /api/v1/chart/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:11 +0800] "GET /api/v1/chart/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:12 +0800] "GET /api/v1/dashboard/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:12 +0800] "GET /api/v1/dashboard/_info?q=(keys:!(permissions)) HTTP/1.1" 200 147 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:12 +0800] "GET /api/v1/chart/_info?q=(keys:!(permissions)) HTTP/1.1" 200 74 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:08:15 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:08:24 +0800] "GET /api/v1/dashboard/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:27 +0800] "GET /superset/welcome/ HTTP/1.1" 200 5963 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:29 +0800] "GET /api/v1/log/recent_activity/?q=(distinct:!f,page_size:24) HTTP/1.1" 200 14 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:29 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 917 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:26 +0800] "GET /api/v1/chart/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:26 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:26 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:27 +0800] "GET /api/v1/saved_query/?q=(filters:!((col:created_by,opr:rel_o_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 492 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:27 +0800] "GET /api/v1/chart/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:27 +0800] "GET /api/v1/saved_query/_info?q=(keys:!(permissions)) HTTP/1.1" 200 54 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:28 +0800] "GET /api/v1/dashboard/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:28 +0800] "GET /api/v1/dashboard/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:28 +0800] "GET /api/v1/chart/_info?q=(keys:!(permissions)) HTTP/1.1" 200 74 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:28 +0800] "GET /api/v1/dashboard/_info?q=(keys:!(permissions)) HTTP/1.1" 200 147 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:42 +0800] "GET /superset/welcome/ HTTP/1.1" 200 5962 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:42 +0800] "GET /api/v1/log/recent_activity/?q=(distinct:!f,page_size:24) HTTP/1.1" 200 14 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:43 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 919 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:43 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:08:43 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:08:43 +0800] "GET /api/v1/chart/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:43 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:44 +0800] "GET /api/v1/dashboard/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:44 +0800] "GET /api/v1/saved_query/?q=(filters:!((col:created_by,opr:rel_o_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 492 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:44 +0800] "GET /api/v1/saved_query/_info?q=(keys:!(permissions)) HTTP/1.1" 200 54 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:45 +0800] "GET /api/v1/dashboard/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 549 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:45 +0800] "GET /api/v1/dashboard/_info?q=(keys:!(permissions)) HTTP/1.1" 200 147 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:45 +0800] "GET /api/v1/chart/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:08:45 +0800] "GET /api/v1/chart/_info?q=(keys:!(permissions)) HTTP/1.1" 200 74 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:08 +0800] "GET /dashboard/new/ HTTP/1.1" 302 251 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:09 +0800] "GET /superset/dashboard/1/?edit=true HTTP/1.1" 200 5978 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:09 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 916 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:09 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:10 +0800] "GET /api/v1/dashboard/1/charts HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:10 +0800] "GET /api/v1/dashboard/1 HTTP/1.1" 200 401 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:10 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:10 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:11 +0800] "GET /api/v1/chart/?q=(columns:!(changed_on_delta_humanized,changed_on_utc,datasource_id,datasource_type,datasource_url,datasource_name_text,description_markeddown,description,id,params,slice_name,thumbnail_url,url,viz_type,owners.id,created_by.id),filters:!((col:owners,opr:rel_m_m,value:1)),order_column:changed_on_delta_humanized,order_direction:desc,page_size:200) HTTP/1.1" 200 384 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:11 +0800] "GET /api/v1/dashboard/1/datasets HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:11 +0800] "POST /superset/log/?explode=events&dashboard_id=1 HTTP/1.1" 200 9 "http://localhost:8088/superset/dashboard/1/?edit=true" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:09 +0800] "PUT /api/v1/dashboard/1/colors?mark_updated=false HTTP/1.1" 200 3 "http://localhost:8088/dashboard/list/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:09 +0800] "GET /api/v1/dashboard/_info?q=(keys:!(permissions)) HTTP/1.1" 200 147 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:09:09 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:09:09 +0800] "POST /superset/log/?explode=events&dashboard_id=1 HTTP/1.1" 200 9 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:10 +0800] "GET /api/v1/dashboard/?q=(order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:25,select_columns:!(id,dashboard_title,published,url,slug,changed_by,changed_by.id,changed_by.first_name,changed_by.last_name,changed_on_delta_humanized,owners,owners.id,owners.first_name,owners.last_name,tags.id,tags.name,tags.type,status,certified_by,certification_details,changed_on)) HTTP/1.1" 200 510 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:10 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:12 +0800] "GET /api/v1/dashboard/1 HTTP/1.1" 200 448 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:12 +0800] "GET /api/v1/dashboard/1/datasets HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:12 +0800] "GET /api/v1/dashboard/1/charts HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:13 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:13 +0800] "GET /api/v1/chart/?q=(columns:!(changed_on_delta_humanized,changed_on_utc,datasource_id,datasource_type,datasource_url,datasource_name_text,description_markeddown,description,id,params,slice_name,thumbnail_url,url,viz_type,owners.id,created_by.id),filters:!((col:owners,opr:rel_m_m,value:1)),order_column:changed_on_delta_humanized,order_direction:desc,page_size:200) HTTP/1.1" 200 384 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:13 +0800] "POST /api/v1/dashboard/1/filter_state?tab_id=6 HTTP/1.1" 201 22 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:14 +0800] "POST /superset/log/?explode=events&dashboard_id=1 HTTP/1.1" 200 9 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:16 +0800] "GET /api/v1/chart/?q=(columns:!(changed_on_delta_humanized,changed_on_utc,datasource_id,datasource_type,datasource_url,datasource_name_text,description_markeddown,description,id,params,slice_name,thumbnail_url,url,viz_type,owners.id,created_by.id),filters:!((col:owners,opr:rel_m_m,value:1)),order_column:changed_on_delta_humanized,order_direction:desc,page_size:200) HTTP/1.1" 200 384 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:17 +0800] "GET /superset/dashboard/1/?native_filters_key=8c7H3GR_iKM HTTP/1.1" 200 5981 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:18 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:18 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 916 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:18 +0800] "GET /api/v1/dashboard/1/charts HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:18 +0800] "GET /api/v1/dashboard/1 HTTP/1.1" 200 449 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:18 +0800] "GET /api/v1/dashboard/1/filter_state/8c7H3GR_iKM HTTP/1.1" 200 15 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:18 +0800] "GET /api/v1/dashboard/1/datasets HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:19 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:19 +0800] "POST /api/v1/dashboard/1/filter_state?tab_id=6 HTTP/1.1" 201 22 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:19 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:20 +0800] "GET / HTTP/1.1" 302 223 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:21 +0800] "GET /superset/welcome/ HTTP/1.1" 200 5964 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:21 +0800] "GET /api/v1/log/recent_activity/?q=(distinct:!f,page_size:24) HTTP/1.1" 200 185 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:21 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 916 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:22 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:22 +0800] "GET /api/v1/saved_query/?q=(filters:!((col:created_by,opr:rel_o_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 492 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:24 +0800] "GET /api/v1/chart/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:24 +0800] "GET /api/v1/saved_query/_info?q=(keys:!(permissions)) HTTP/1.1" 200 54 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:24 +0800] "GET /api/v1/chart/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 796 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:24 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:24 +0800] "GET /api/v1/dashboard/?q=(filters:!((col:owners,opr:rel_m_m,value:%271%27)),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 812 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:24 +0800] "GET /api/v1/dashboard/?q=(filters:!(),order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:5) HTTP/1.1" 200 812 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:25 +0800] "GET /api/v1/dashboard/_info?q=(keys:!(permissions)) HTTP/1.1" 200 147 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:25 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:25 +0800] "GET /api/v1/chart/_info?q=(keys:!(permissions)) HTTP/1.1" 200 74 "http://localhost:8088/superset/welcome/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:28 +0800] "GET /api/v1/dashboard/1 HTTP/1.1" 200 449 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:28 +0800] "GET /api/v1/dashboard/1/charts HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:28 +0800] "GET /api/v1/dashboard/1/datasets HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:28 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:29 +0800] "POST /api/v1/dashboard/1/filter_state?tab_id=6 HTTP/1.1" 201 22 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:29 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:38 +0800] "GET /api/v1/database/?q=(order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:25) HTTP/1.1" 200 916 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:38 +0800] "GET /api/v1/database/_info?q=(keys:!(permissions)) HTTP/1.1" 200 67 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:38 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:38 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:09:37 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:09:48 +0800] "GET /api/v1/database/?q=(order_column:expose_in_sqllab,order_direction:asc,page:0,page_size:25) HTTP/1.1" 200 916 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=asc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:51 +0800] "GET /api/v1/database/?q=(order_column:expose_in_sqllab,order_direction:desc,page:0,page_size:25) HTTP/1.1" 200 916 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:58 +0800] "GET /databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc HTTP/1.1" 200 5961 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:58 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 916 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:58 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:59 +0800] "GET /api/v1/database/?q=(order_column:expose_in_sqllab,order_direction:desc,page:0,page_size:25) HTTP/1.1" 200 917 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:59 +0800] "GET /api/v1/database/_info?q=(keys:!(permissions)) HTTP/1.1" 200 67 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:59 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:09:59 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:01 +0800] "GET /databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc HTTP/1.1" 200 5960 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:01 +0800] "GET /api/v1/database/?q=(filters:!((col:database_name,opr:neq,value:examples))) HTTP/1.1" 200 917 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:02 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:02 +0800] "GET /api/v1/database/?q=(order_column:expose_in_sqllab,order_direction:desc,page:0,page_size:25) HTTP/1.1" 200 917 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:02 +0800] "GET /api/v1/database/_info?q=(keys:!(permissions)) HTTP/1.1" 200 67 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:02 +0800] "GET /api/v1/database/?q=(filters:!((col:allow_file_upload,opr:upload_is_enabled,value:!t))) HTTP/1.1" 200 614 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:03 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/databaseview/list/?pageIndex=0&sortColumn=expose_in_sqllab&sortOrder=desc" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+127.0.0.1 - - [23/Jan/2026:19:10:05 +0800] "GET /health HTTP/1.1" 200 2 "-" "curl/7.88.1"
+172.18.0.1 - - [23/Jan/2026:19:10:17 +0800] "GET /api/v1/dashboard/_info?q=(keys:!(permissions)) HTTP/1.1" 200 147 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:18 +0800] "GET /api/v1/dashboard/?q=(order_column:changed_on_delta_humanized,order_direction:desc,page:0,page_size:25,select_columns:!(id,dashboard_title,published,url,slug,changed_by,changed_by.id,changed_by.first_name,changed_by.last_name,changed_on_delta_humanized,owners,owners.id,owners.first_name,owners.last_name,tags.id,tags.name,tags.type,status,certified_by,certification_details,changed_on)) HTTP/1.1" 200 510 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:18 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:16 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/dashboard/list/?pageIndex=0&sortColumn=changed_on_delta_humanized&sortOrder=desc&viewMode=table" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:17 +0800] "GET /api/v1/dashboard/1/datasets HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:17 +0800] "GET /api/v1/dashboard/1/charts HTTP/1.1" 200 14 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:17 +0800] "GET /api/v1/dashboard/1 HTTP/1.1" 200 446 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:17 +0800] "GET /api/v1/dashboard/favorite_status/?q=!(1) HTTP/1.1" 200 36 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:18 +0800] "POST /api/v1/dashboard/1/filter_state?tab_id=6 HTTP/1.1" 201 22 "http://localhost:8088/superset/dashboard/1/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+172.18.0.1 - - [23/Jan/2026:19:10:18 +0800] "POST /superset/log/?explode=events HTTP/1.1" 200 9 "http://localhost:8088/superset/dashboard/1/?native_filters_key=8c7H3GR_iKM" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"

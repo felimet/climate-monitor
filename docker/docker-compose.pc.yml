@@ -1,0 +1,166 @@
+# 開發環境 Docker Compose 設定
+# 使用方式：docker compose up -d 或 docker compose up -d --profile tunnel
+# 使用 docker compose --profile tunnel up 啟用 Cloudflare Tunnel
+
+name: climate-tapo-monitor
+
+services:
+  # CrateDB 資料庫
+  cratedb:
+    image: crate:latest
+    container_name: climate-cratedb
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    ports:
+      - "4500:4200"   # HTTP 管理介面
+      - "5432:5432"   # PostgreSQL 連線協定
+    volumes:
+      - cratedb_data:/data
+    environment:
+      - CRATE_HEAP_SIZE=1g
+    command: >
+      crate
+        -Ccluster.name=climate-cluster
+        -Cnode.name=crate-dev
+        -Cnetwork.host=0.0.0.0
+        -Cdiscovery.type=single-node
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4200/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Climate Monitor 應用程式
+  climate-monitor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: climate-monitor
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    depends_on:
+      cratedb:
+        condition: service_healthy
+    # 使用 host 網路以存取區域網路上的 Tapo 設備
+    # network_mode: host
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Cloudflare Tunnel（選填）
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: climate-cloudflare-tunnel
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    command: tunnel --no-autoupdate run
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      cratedb:
+        condition: service_healthy
+    profiles:
+      - tunnel  # 使用 docker compose --profile tunnel up 啟用
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Cache for Superset
+  redis:
+    image: redis:7
+    container_name: superset-cache
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+
+  # Superset Metadata DB
+  superset-db:
+    image: postgres:15
+    container_name: superset-db
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_DB: ${SUPERSET_POSTGRES_DB:-superset}
+      POSTGRES_USER: ${SUPERSET_POSTGRES_USER:-superset}
+      POSTGRES_PASSWORD: ${SUPERSET_POSTGRES_PASSWORD:-superset}
+    volumes:
+      - db_home:/var/lib/postgresql/data
+
+
+  # Superset Web Server
+  superset:
+    build:
+      context: .
+      dockerfile: superset/Dockerfile
+    container_name: superset
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      SQLALCHEMY_DATABASE_URI: postgresql://${SUPERSET_POSTGRES_USER:-superset}:${SUPERSET_POSTGRES_PASSWORD:-superset}@superset-db:5432/${SUPERSET_POSTGRES_DB:-superset}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAPBOX_API_KEY: ""
+    ports:
+      - "8088:8088"
+    depends_on:
+      - superset-db
+      - redis
+    volumes:
+      - superset_home:/app/superset_home
+    # Increase timeout for initial start
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+
+
+
+  # Superset Initialization
+  superset-init:
+    build:
+      context: .
+      dockerfile: superset/Dockerfile
+    container_name: superset-init
+    command: ["/app/docker/superset/superset-init.sh"]
+    env_file:
+      - ../.env
+    environment:
+      SQLALCHEMY_DATABASE_URI: postgresql://${SUPERSET_POSTGRES_USER:-superset}:${SUPERSET_POSTGRES_PASSWORD:-superset}@superset-db:5432/${SUPERSET_POSTGRES_DB:-superset}
+    depends_on:
+      - superset
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/superset-init.sh:/app/docker/superset/superset-init.sh
+      - ./superset/datasources.yaml:/app/docker/superset/datasources.yaml
+
+
+volumes:
+  cratedb_data:
+  superset_home:
+  db_home:
+  redis_data:

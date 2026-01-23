@@ -1,0 +1,39 @@
+# --- Python ---
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Virtual Environments ---
+.venv/
+venv/
+env/
+
+# --- Environment Variables & Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Docker / Local Deployment ---
+docker-compose.override.yml
+docker/cratedb_data/
+docker/redis_data/
+docker/superset_home/
+docker/db_home/
+
+# --- OS Specific ---
+.DS_Store
+
+# --- Agent ---
+.agent/

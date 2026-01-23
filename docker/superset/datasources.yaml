@@ -1,0 +1,25 @@
+databases:
+  - database_name: Climate Data (CrateDB)
+    sqlalchemy_uri: crate://crate@cratedb:4200
+    expose_in_sqllab: true
+    allow_run_async: false
+    tables:
+      - table_name: sensor_readings
+        schema: doc
+        description: "Climate Sensor Data"
+        columns:
+          - column_name: ts
+            type: TIMESTAMP
+            is_dttm: true
+          - column_name: device_id
+            type: STRING
+          - column_name: device_name
+            type: STRING
+          - column_name: temperature
+            type: FLOAT
+          - column_name: humidity
+            type: FLOAT
+          - column_name: battery_level
+            type: INTEGER
+          - column_name: rssi
+            type: INTEGER

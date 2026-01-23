@@ -1,0 +1,181 @@
+# Synology NAS 生產環境 Docker Compose 設定
+#
+# 部署步驟：
+# 1. 將整個專案資料夾上傳至 NAS (例如 /volume1/docker/climate-monitor)
+# 2. 確保 .env 檔案存在並填入正確資訊
+# 3. 在 Container Manager 中建立專案，選擇此 docker-compose.prod.yml 檔案
+#    或者 SSH 登入執行：sudo docker compose -f docker-compose.prod.yml up -d --build
+
+name: climate-tapo-monitor
+
+x-common: &common
+  restart: unless-stopped
+  env_file:
+    - .env
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  # CrateDB 資料庫
+  cratedb:
+    <<: *common
+    image: crate:latest
+    container_name: climate-cratedb
+    ports:
+      - "4500:4200"   # HTTP 管理介面
+      # - "5432:5432"   # PostgreSQL 連線協定
+    volumes:
+      - cratedb_data:/data
+    environment:
+      - CRATE_HEAP_SIZE=1g
+      - TZ=Asia/Taipei
+    command: >
+      crate
+        -Ccluster.name=climate-cluster
+        -Cnode.name=crate-nas
+        -Cnetwork.host=0.0.0.0
+        -Cdiscovery.type=single-node
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4200/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # Climate Monitor 應用程式
+  climate-monitor:
+    <<: *common
+    # 在 NAS 上直接建構映像檔（需上傳完整 source code）
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: climate-monitor:latest
+    container_name: climate-monitor
+    depends_on:
+      - cratedb
+    # 移除 host mode，使用 bridge 網路以確保穩定連線
+    # network_mode: host
+    environment:
+      # 在 prod 環境，使用服務名稱連線資料庫
+      - CRATEDB_HOST=cratedb
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+
+  # Redis Cache for Superset (輕量級配置)
+  redis:
+    <<: *common
+    image: redis:7-alpine
+    container_name: superset-cache
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+
+  # Superset Metadata DB
+  superset-db:
+    <<: *common
+    image: postgres:15-alpine
+    container_name: superset-db
+    environment:
+      POSTGRES_DB: ${SUPERSET_POSTGRES_DB:-superset}
+      POSTGRES_USER: ${SUPERSET_POSTGRES_USER:-superset}
+      POSTGRES_PASSWORD: ${SUPERSET_POSTGRES_PASSWORD:-superset}
+    volumes:
+      - db_home:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+
+  # Superset Web Server (NAS 最佳化)
+  superset:
+    <<: *common
+    build:
+      context: .
+      dockerfile: docker/superset/Dockerfile
+    image: climate-superset:latest
+    container_name: superset
+    environment:
+      SQLALCHEMY_DATABASE_URI: postgresql://${SUPERSET_POSTGRES_USER:-superset}:${SUPERSET_POSTGRES_PASSWORD:-superset}@superset-db:5432/${SUPERSET_POSTGRES_DB:-superset}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAPBOX_API_KEY: ""
+      # NAS 效能最佳化
+      SUPERSET_WEBSERVER_TIMEOUT: 300
+      GUNICORN_TIMEOUT: 300
+      GUNICORN_WORKERS: 2
+    ports:
+      - "8088:8088"
+    depends_on:
+      - superset-db
+      - redis
+    volumes:
+      - superset_home:/app/superset_home
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+
+  # Superset Initialization
+  superset-init:
+    <<: *common
+    build:
+      context: .
+      dockerfile: docker/superset/Dockerfile
+    image: climate-superset:latest
+    container_name: superset-init
+    command: ["/app/docker/superset/superset-init.sh"]
+    environment:
+      SQLALCHEMY_DATABASE_URI: postgresql://${SUPERSET_POSTGRES_USER:-superset}:${SUPERSET_POSTGRES_PASSWORD:-superset}@superset-db:5432/${SUPERSET_POSTGRES_DB:-superset}
+    depends_on:
+      - superset
+    volumes:
+      - superset_home:/app/superset_home
+      - ./docker/superset/superset-init.sh:/app/docker/superset/superset-init.sh
+      - ./docker/superset/datasources.yaml:/app/docker/superset/datasources.yaml
+
+
+  # Cloudflare Tunnel - 安全遠端存取
+  cloudflare-tunnel:
+    <<: *common
+    image: cloudflare/cloudflared:latest
+    container_name: climate-cloudflare-tunnel
+    command: tunnel --no-autoupdate run
+    # env_file 會自動將 TUNNEL_TOKEN 匯入
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - cratedb
+    deploy:
+      resources:
+        limits: 
+          memory: 128M
+
+
+volumes:
+  cratedb_data:
+  superset_home:
+  db_home:
+  redis_data:
