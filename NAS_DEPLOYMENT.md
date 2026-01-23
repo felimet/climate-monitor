@@ -422,7 +422,147 @@ sudo docker compose logs -f climate-monitor
    df -h | grep volume1
    ```
 
-### 問題 5：Synology Container Manager GUI 問題
+### 問題 5：重建 CrateDB 資料庫（清除所有資料）
+
+**症狀**：需要完全重置 CrateDB（例如：shard 數量超限、資料損壞、架構變更）
+
+**⚠️ 警告**：此操作將**永久刪除**所有歷史資料，請先備份！
+
+**解決方案**：
+
+#### 步驟 1：確認 Docker Compose 專案路徑
+
+```bash
+# 切換到專案目錄
+cd /volume1/docker/JiaMing/climate-monitor/docker
+
+# 確認 Docker Compose 檔案存在
+ls -lah docker-compose*.yml
+
+# 查看當前運行的容器
+sudo docker compose ps
+```
+
+#### 步驟 2：停止所有服務
+
+```bash
+# 使用正確的 compose 檔案（根據實際情況選擇）
+sudo docker compose -f docker-compose.yml down
+# 或
+sudo docker compose down
+```
+
+#### 步驟 3：刪除 CrateDB Volume
+
+```bash
+# 列出所有 volumes，確認實際名稱
+sudo docker volume ls | grep crate
+
+# 刪除 CrateDB volume（常見名稱）
+sudo docker volume rm climate-monitor_cratedb_data
+
+# 如果名稱不同，請使用實際顯示的名稱
+# sudo docker volume rm <實際_volume_名稱>
+```
+
+**注意**：Volume 名稱取決於 Docker Compose 專案名稱：
+- 如果 `docker-compose.yml` 中有 `name: climate-tapo-monitor`：
+  - Volume 名稱為 `climate-tapo-monitor_cratedb_data`
+- 如果沒有指定專案名稱：
+  - Volume 名稱為 `<目錄名稱>_cratedb_data`（如 `climate-monitor_cratedb_data`）
+
+#### 步驟 4：重新啟動 CrateDB
+
+```bash
+# 僅啟動 CrateDB（其他服務可稍後啟動）
+sudo docker compose up -d cratedb
+
+# 等待啟動完成（約 40 秒）
+sleep 40
+```
+
+#### 步驟 5：設定 Shard 上限（重要！）
+
+```bash
+# 提高 shard 上限至 3000（避免單節點環境達到預設上限）
+curl -s -X POST "http://localhost:4500/_sql" \
+  -H "Content-Type: application/json" \
+  -d '{"stmt":"SET GLOBAL PERSISTENT cluster.max_shards_per_node = 3000"}' | python3 -m json.tool
+
+# 驗證設定
+curl -s -X POST "http://localhost:4500/_sql" \
+  -H "Content-Type: application/json" \
+  -d '{"stmt":"SELECT settings['"'"'cluster'"'"']['"'"'max_shards_per_node'"'"'] as max_shards FROM sys.cluster"}' | python3 -m json.tool
+```
+
+#### 步驟 6：初始化資料庫 Schema
+
+```bash
+# 方法 A：使用 crash 命令（推薦）
+sudo docker exec climate-cratedb crash < /volume1/docker/JiaMing/climate-monitor/scripts/init_db.sql
+
+# 方法 B：如果找不到 crash，使用預設容器名稱
+sudo docker exec cratedb crash < /volume1/docker/JiaMing/climate-monitor/scripts/init_db.sql
+
+# 方法 C：使用 HTTP API（如果上述失敗）
+curl -X POST "http://localhost:4500/_sql" \
+  -H "Content-Type: application/json" \
+  -d "@/volume1/docker/JiaMing/climate-monitor/scripts/init_db.sql"
+```
+
+#### 步驟 7：驗證資料表已建立
+
+```bash
+# 確認表已建立
+curl -s -X POST "http://localhost:4500/_sql" \
+  -H "Content-Type: application/json" \
+  -d '{"stmt":"SHOW TABLES"}' | python3 -m json.tool
+
+# 預期輸出應包含：
+# - sensor_readings
+# - latest_readings
+# - minute_metrics
+# - hourly_metrics
+# - daily_stats
+# - weekly_stats
+# - monthly_stats
+```
+
+#### 步驟 8：啟動所有服務
+
+```bash
+# 啟動所有服務
+sudo docker compose up -d
+
+# 查看服務狀態
+sudo docker compose ps
+
+# 監控應用程式日誌，確認資料開始寫入
+sudo docker compose logs -f climate-monitor
+```
+
+#### 步驟 9：驗證資料寫入
+
+```bash
+# 等待 2-3 分鐘後查詢
+curl -s -X POST "http://localhost:4500/_sql" \
+  -H "Content-Type: application/json" \
+  -d '{"stmt":"SELECT count(*) as total FROM sensor_readings"}' | python3 -m json.tool
+
+# 確認分割區正常（應該只有 1 個，對應當前月份）
+curl -s -X POST "http://localhost:4500/_sql" \
+  -H "Content-Type: application/json" \
+  -d '{"stmt":"SELECT partition_ident, values['"'"'month_ts'"'"'] as month, number_of_shards FROM information_schema.table_partitions WHERE table_schema = '"'"'doc'"'"' ORDER BY values['"'"'month_ts'"'"'] DESC"}' | python3 -m json.tool
+```
+
+**預期結果**：
+- `total` > 0（有新資料）
+- 僅 1 個分割區，對應當前月份
+- `number_of_shards = 1`（單節點最佳化配置）
+
+---
+
+### 問題 6：Synology Container Manager GUI 問題
 
 **症狀**：透過 Container Manager 介面無法看到或管理容器
 
