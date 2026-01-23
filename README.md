@@ -96,7 +96,7 @@ CrateDB 啟動後，請至 Admin UI (`http://localhost:4200`) 執行 `scripts/in
    timezone('Asia/Taipei', ts)
    ```
 
-4. 設定 **Data type** 為 `TIMESTAMP`，並將 **Datetime format** 設為 `epoch_ms`。
+4. 設定 **Data type** 為 `TIMESTAMP` or `DATETIME`，並將 **Datetime format** 設為 `epoch_ms`。
 5. 勾選 **Is temporal**。
 6. 在製作圖表時，將此欄位選為 Time Column。
 
