@@ -9,8 +9,10 @@ databases:
         description: "Climate Sensor Data"
         columns:
           - column_name: ts
+            expression: "timezone('Asia/Taipei', ts)"
             type: TIMESTAMP
             is_dttm: true
+            verbose_name: "Time"
           - column_name: device_id
             type: STRING
           - column_name: device_name
@@ -23,3 +25,43 @@ databases:
             type: INTEGER
           - column_name: rssi
             type: INTEGER
+      # - table_name: minute_metrics
+      #   schema: doc
+      #   description: "Minute-level Aggregated Metrics (Taipei Time)"
+      #   columns:
+      #     - column_name: ts
+      #       expression: "minute_asia_taipei"
+      #       type: TIMESTAMP
+      #       is_dttm: true
+      #       verbose_name: "Time"
+      #     - column_name: device_name
+      #       type: STRING
+      #     - column_name: device_id
+      #       type: STRING
+      #     - column_name: avg_temp
+      #       type: FLOAT
+      #     - column_name: avg_hum
+      #       type: FLOAT
+      #     - column_name: samples_count
+      #       type: INTEGER
+      # - table_name: latest_readings
+      #   schema: doc
+      #   description: "Latest Device Readings (Taipei Time)"
+      #   columns:
+      #     - column_name: ts
+      #       expression: "last_seen_asia_taipei"
+      #       type: TIMESTAMP
+      #       is_dttm: true
+      #       verbose_name: "Time"
+      #     - column_name: device_name
+      #       type: STRING
+      #     - column_name: device_id
+      #       type: STRING
+      #     - column_name: temperature
+      #       type: FLOAT
+      #     - column_name: humidity
+      #       type: FLOAT
+      #     - column_name: battery_level
+      #       type: INTEGER
+      #     - column_name: rssi
+      #       type: INTEGER

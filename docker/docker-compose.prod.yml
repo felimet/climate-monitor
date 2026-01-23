@@ -30,7 +30,7 @@ services:
     volumes:
       - cratedb_data:/data
     environment:
-      - CRATE_HEAP_SIZE=1g
+      - CRATE_HEAP_SIZE=2g
       - TZ=Asia/Taipei
     command: >
       crate
@@ -47,7 +47,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 3G
 
   # Climate Monitor 應用程式
   climate-monitor:
@@ -155,7 +155,6 @@ services:
       - superset_home:/app/superset_home
       - ./docker/superset/superset-init.sh:/app/docker/superset/superset-init.sh
       - ./docker/superset/datasources.yaml:/app/docker/superset/datasources.yaml
-
 
   # Cloudflare Tunnel - 安全遠端存取
   cloudflare-tunnel:

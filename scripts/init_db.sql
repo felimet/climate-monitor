@@ -2,8 +2,9 @@
 -- 此程式在容器首次啟動時自動執行
 
 CREATE TABLE IF NOT EXISTS sensor_readings (
-    -- 分區鍵（時序分區必要）
+    -- 分區鍵（使用月份分區，由 ts 自動產生對應月份）
     ts TIMESTAMP WITH TIME ZONE NOT NULL,
+    month_ts TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS date_trunc('month', ts),
     
     -- 主鍵組成
     device_id TEXT NOT NULL,
@@ -19,9 +20,9 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     battery_level INTEGER,         -- 單位：0-100%
     rssi INTEGER,                  -- 單位：dBm
     
-    PRIMARY KEY (device_id, ts)
+    PRIMARY KEY (device_id, ts, month_ts)
 ) CLUSTERED BY (device_id) INTO 4 SHARDS
-  PARTITIONED BY (ts);
+  PARTITIONED BY (month_ts);
 
 -- -----------------------------------------------------------------------------
 -- Views（時區：Asia/Taipei，排序：DESC）

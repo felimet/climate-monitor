@@ -18,7 +18,7 @@ services:
     volumes:
       - cratedb_data:/data
     environment:
-      - CRATE_HEAP_SIZE=1g
+      - CRATE_HEAP_SIZE=2g
     command: >
       crate
         -Ccluster.name=climate-cluster
@@ -34,7 +34,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 3G
     logging:
       driver: json-file
       options:
@@ -157,7 +157,6 @@ services:
       - superset_home:/app/superset_home
       - ./superset/superset-init.sh:/app/docker/superset/superset-init.sh
       - ./superset/datasources.yaml:/app/docker/superset/datasources.yaml
-
 
 volumes:
   cratedb_data:

@@ -21,9 +21,10 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     humidity DOUBLE PRECISION,
     battery_level INTEGER,
     rssi INTEGER,
-    PRIMARY KEY (device_id, ts)
+    month_ts TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS date_trunc('month', ts),
+    PRIMARY KEY (device_id, ts, month_ts)
 ) CLUSTERED BY (device_id) INTO 4 SHARDS
-  PARTITIONED BY (ts)
+  PARTITIONED BY (month_ts)
 """
 
 CREATE_VIEWS_SQL = [
