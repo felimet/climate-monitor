@@ -82,16 +82,16 @@
 
 ### 技術棧
 
-| 層級 | 技術 | 用途 |
-|------|------|------|
-| **資料採集** | Python 3.11 + python-kasa | 與 Tapo 設備通訊 |
-| **專案管理** | uv | 快速依賴管理與虛擬環境 |
-| **資料儲存** | CrateDB 5.9+ | 分散式時序資料庫 |
-| **資料視覺化** | Apache Superset 4.1+ | BI 儀表板平台 |
-| **元資料儲存** | PostgreSQL 16 | Superset 後端資料庫 |
-| **快取層** | Redis 7 | Superset 查詢快取 |
-| **容器化** | Docker + Docker Compose | 服務編排與部署 |
-| **遠端存取** | Cloudflare Tunnel | Zero Trust 安全通道 |
+| 層級 | 技術 | 用途 | 備註 |
+|------|------|------|------|
+| **資料採集** | Python 3.11 + python-kasa | 與 Tapo 設備通訊 | [python-kasa](https://github.com/python-kasa/python-kasa.git) |
+| **專案管理** | uv | 快速依賴管理與虛擬環境 | [uv](https://github.com/astral-sh/uv) |
+| **資料儲存** | CrateDB 5.9+ | 分散式時序資料庫 | [CrateDB](https://github.com/crate/crate) |
+| **資料視覺化** | Apache Superset 4.1+ | BI 儀表板平台 | [Apache Superset](https://github.com/apache/superset) |
+| **元資料儲存** | PostgreSQL 16 | Superset 後端資料庫 | [PostgreSQL](https://github.com/postgres/postgres) |
+| **快取層** | Redis 7 | Superset 查詢快取 | [Redis](https://github.com/redis/redis) |
+| **容器化** | Docker + Docker Compose | 服務編排與部署 | [Docker](https://docs.docker.com/get-started/) + [Docker Compose](https://github.com/docker/compose) |
+| **遠端存取** | Cloudflare Tunnel | Zero Trust 安全通道 | [Cloudflare Tunnel](https://github.com/cloudflare/cloudflared) |
 
 ---
 
