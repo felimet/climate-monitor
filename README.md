@@ -21,7 +21,7 @@
 
 - Python 3.11+ (建議使用 [uv](https://github.com/astral-sh/uv) 管理)
 - Docker & Docker Compose
-- Tapo H200 網關 + T315 感測器
+- Tapo H200 網關 (Gateway) + T315 感測器 (Sensor)
 
 ### 1. 安裝與設定
 
