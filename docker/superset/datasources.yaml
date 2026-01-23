@@ -10,7 +10,7 @@ databases:
         columns:
           - column_name: ts
             expression: "timezone('Asia/Taipei', ts)"
-            type: TIMESTAMP
+            type: DATETIME
             is_dttm: true
             verbose_name: "Time"
           - column_name: device_id

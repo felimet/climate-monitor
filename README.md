@@ -226,9 +226,10 @@ uv run climate-monitor
    timezone('Asia/Taipei', ts)
    ```
 
-4. 設定 **Data type** 為 `TIMESTAMP`。
-5. 勾選 **Is temporal**。
-6. 在製作圖表時，將此欄位選為 Time Column。
+4. 設定 **Data type** 為 `DATETIME`。
+5. Datetime format = epoch_ms
+6. 勾選 **Is temporal**。
+7. 在製作圖表時，將此欄位選為 Time Column。
 
 > **註**：系統預設的 `datasources.yaml` 已自動為您設定好此計算欄位 (Column Name: `ts`, Label: `Time`)。由於 `ts` 欄位現在儲存為標準 ISO 8601 格式 (`TIMESTAMP WITH TIME ZONE`)，Superset 會自動正確解析時間資料，無需額外格式設定。
 
