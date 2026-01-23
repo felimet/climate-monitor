@@ -100,7 +100,7 @@
 > - **彈性查詢**：支援複雜的 JOIN、Aggregation 與 Materialized Views，適合多維度分析
 > - **資料規模**：本專案資料量級（每分鐘數筆記錄）尚未達專業時序資料庫的效能優勢閾值
 >
-> 若未來需要毫秒級寫入或百萬級感測器，建議評估遷移至 TimescaleDB 或 ClickHouse。
+> 若未來需要毫秒級寫入或百萬級感測器，建議評估遷移至 InfluxDB 或 TimescaleDB 或 ClickHouse。
 
 ---
 
