@@ -82,6 +82,25 @@ CrateDB 啟動後，請至 Admin UI (`http://localhost:4200`) 執行 `scripts/in
 | `weekly_stats` | 每週統計 | 週報表 |
 | `monthly_stats` | 每月統計 | 年度分析 |
 
+### Superset 時區設定技巧 (Calculated Columns)
+
+由於 Superset 預設顯示 UTC 時間，為了正確顯示台北時間 (Asia/Taipei)，建議在 Dataset 中新增 **Calculated Column**，而不僅依賴資料庫 View 的轉換。
+
+**設定方式**：
+
+1. 進入 Edit Dataset -> **Calculated Columns** 分頁。
+2. 新增一個欄位（例如命名為 `ts` 或 `ts_taiwan`）。
+3. **SQL Expression** 輸入：
+
+   ```sql
+   timezone('Asia/Taipei', ts)
+   ```
+
+4. 勾選 **Is temporal**。
+5. 在製作圖表時，將此欄位選為 Time Column。
+
+> **註**：系統預設的 `datasources.yaml` 已自動為您設定好此計算欄位 (Label: `Time`)。
+
 **查詢範例：查看過去 24 小時的溫度趨勢（台北時間）**
 
 ```sql
