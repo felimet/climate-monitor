@@ -93,6 +93,15 @@
 | **容器化** | Docker + Docker Compose | 服務編排與部署 | [Docker](https://docs.docker.com/get-started/) + [Docker Compose](https://github.com/docker/compose) |
 | **遠端存取** | Cloudflare Tunnel | Zero Trust 安全通道 | [Cloudflare Tunnel](https://github.com/cloudflare/cloudflared) |
 
+> **技術選型說明**：CrateDB 並非時序資料庫的第一選擇（如 InfluxDB、TimescaleDB 更為常見），但在本專案中，考量以下因素後為相對較佳的做法：
+>
+> - **PostgreSQL 相容性**：支援標準 SQL 與 PostgreSQL Wire Protocol，降低 BI 工具整合成本（Apache Superset 原生支援）
+> - **簡易部署**：單一容器即可運行，無需複雜叢集配置，適合 Synology NAS 等資源受限環境
+> - **彈性查詢**：支援複雜的 JOIN、Aggregation 與 Materialized Views，適合多維度分析
+> - **資料規模**：本專案資料量級（每分鐘數筆記錄）尚未達專業時序資料庫的效能優勢閾值
+>
+> 若未來需要毫秒級寫入或百萬級感測器，建議評估遷移至 TimescaleDB 或 ClickHouse。
+
 ---
 
 ## 快速開始
@@ -100,6 +109,7 @@
 ### 環境需求
 
 - **硬體**：Tapo H200 網關 + T315 感測器（一個或多個）
+
 - **軟體**：Docker 20.10+ & Docker Compose 2.0+
 - **開發工具**（選用）：Python 3.11+, [uv](https://github.com/astral-sh/uv)
 - **網路**：NAS/開發機與 Tapo 設備需在同一區域網路
