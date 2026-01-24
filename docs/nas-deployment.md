@@ -177,7 +177,31 @@ sleep 30
 sudo docker compose up superset-init
 ```
 
-> **注意**：執行完成後，`superset-init` 容器會自動停止（正常現象）。若失敗，請檢查 `db` 與 `redis` 是否正常運行。
+> **注意**：執行完成後，`superset-init` 容器會停止（正常現象）。若失敗，請檢查 `db` 與 `redis` 是否正常運行。
+
+### 步驟 6：停止或移除 superset-init 容器（重要！）
+
+**⚠️ NAS 環境特殊注意事項**：
+
+在 Synology NAS 上，`superset-init` 容器完成初始化後**不會自動移除**，會持續顯示為「已停止」狀態。這會導致 Container Manager 反覆發送「容器不預期停止」的通知。
+
+**解決方案**：初始化完成後，手動停止並移除該容器：
+
+```bash
+# 停止 superset-init 容器
+sudo docker compose down superset-init
+
+# or 停止並移除 superset-init 容器
+sudo docker compose rm -f superset-init
+```
+
+或透過 Container Manager UI：
+
+1. 開啟 Container Manager
+2. 找到 `superset-init` 容器
+3. 右鍵 → 停止或刪除
+
+> **說明**：`superset-init` 是一次性初始化任務，完成後即可刪除。若需重新初始化 Superset，可再次執行 `docker compose up superset-init`。
 
 ---
 
