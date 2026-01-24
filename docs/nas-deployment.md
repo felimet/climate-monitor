@@ -2,6 +2,10 @@
 
 本指南專為 Synology NAS (DSM 7.0+) 使用 Container Manager 部署 Climate Monitor 系統而設計。
 
+提供兩種操作方式：
+- **Container Manager UI**：適合不熟悉終端機的使用者
+- **SSH 終端機**：適合熟悉 Linux 指令的使用者
+
 ---
 
 ## 目錄
@@ -28,10 +32,8 @@
 ### 軟體需求
 
 - **DSM 版本**：7.0 或更新
-- **Container Manager**：已安裝並啟用
-- **SSH 存取** (需熟悉 Linux 指令與環境架構)：啟用 SSH 服務（控制台 → 終端機和 SNMP → 啟動 SSH 功能）
-- **防火牆**：允許必要端口
-> 註記：若熟悉部署環境架構，可直接使用 `Container Manager` UI 進行操作，無需 SSH。
+- **Container Manager**：已安裝並啟用（套件中心 → Container Manager）
+- **SSH 存取**（選用）：控制台 → 終端機和 SNMP → 啟動 SSH 功能
 
 ### 檔案準備檢查清單
 
@@ -44,12 +46,31 @@
 
 ## 部署步驟
 
-### 步驟 1：準備部署檔案
+### 步驟 1：上傳專案檔案
 
-#### 方式 A：透過 Git (推薦)
+#### 方式 A：透過 File Station（推薦）
+
+1. 開啟 **File Station**
+2. 建立資料夾：`/docker/climate-monitor/`
+3. 上傳以下檔案與資料夾：
+
+   ```
+   climate-monitor/
+   ├── docker/
+   │   ├── docker-compose.prod.yml  → 重新命名為 docker-compose.yml
+   │   ├── Dockerfile
+   │   └── superset/
+   ├── src/
+   ├── scripts/
+   ├── .env.example  → 複製並重新命名為 .env
+   └── pyproject.toml
+   ```
+
+4. 編輯 `.env` 檔案，填入實際設定值（可用 Text Editor 套件）
+
+#### 方式 B：透過 Git（SSH）
 
 ```bash
-# SSH 登入 NAS
 ssh admin@<NAS-IP>
 
 # 安裝 Git (若未安裝)
@@ -59,49 +80,17 @@ sudo synopkg install Git
 cd /volume1/docker/
 git clone <repository-url> climate-monitor
 cd climate-monitor
+cp .env.example .env
+nano .env  # 編輯環境變數
 ```
-> **注意**：`/volume1/@docker/volumes` 是 Synology NAS 的預設儲存位置 (為隱藏目錄，請在終端機中輸入 `ls -la` 查看)，請根據實際情況進行調整。 參考 [Synology 官方文件](https://kb.synology.com/en-global/DSM/help/ContainerManager/docker_container?version=7)與各大論壇討論。
-
-#### 方式 B：手動上傳
-
-1. 在本地電腦整理部署檔案：
-
-   ```powershell
-   # Windows PowerShell
-   mkdir deploy_package
-   
-   # 複製必要檔案
-   Copy-Item -Path "docker\docker-compose.prod.yml" -Destination "deploy_package\docker-compose.yml"
-   Copy-Item -Path "docker\Dockerfile" -Destination "deploy_package\"
-   Copy-Item -Path ".env.example" -Destination "deploy_package\.env"
-   
-   # 複製目錄
-   Copy-Item -Recurse -Path "src" -Destination "deploy_package\"
-   Copy-Item -Recurse -Path "scripts" -Destination "deploy_package\"
-   Copy-Item -Recurse -Path "docker\superset" -Destination "deploy_package\docker\"
-   ```
-
-2. 透過 File Station 或 SFTP 上傳至 NAS：
-   - **建議路徑**：`/volume1/docker/climate-monitor/`
 
 ### 步驟 2：設定環境變數
 
-```bash
-# SSH 登入 NAS
-ssh admin@<NAS-IP>
-
-# 切換到專案目錄
-cd /volume1/docker/climate-monitor
-
-# 編輯環境變數
-sudo nano .env
-```
-
-**必填項目**：
+編輯 `.env` 檔案，填入以下必要設定：
 
 ```env
 # Tapo H200 設定 (必填)
-TAPO_HOST=192.168.1.XXX          # 填入實際 IP
+TAPO_HOST=192.168.xxx.xxx          # H200 的實際 IP
 TAPO_USERNAME=your@email.com     # Tapo App 帳號
 TAPO_PASSWORD=your_password      # Tapo App 密碼
 
@@ -125,7 +114,22 @@ TUNNEL_TOKEN=<your_tunnel_token>
 COLLECTION_INTERVAL=60
 ```
 
-### 步驟 3：啟動服務
+### 步驟 3：建立並啟動專案
+
+#### 方式 A：透過 Container Manager UI
+
+1. 開啟 **Container Manager**
+2. 左側選單 → **專案**
+3. 點選 **建立**
+4. 填入專案資訊：
+   - **專案名稱**：`climate-monitor`
+   - **路徑**：選擇 `/docker/climate-monitor`
+   - **來源**：選擇「使用現有的 docker-compose.yml」
+5. 點選 **下一步**
+6. 確認設定後，點選 **完成**
+7. 等待所有容器建構並啟動
+
+#### 方式 B：透過 SSH 終端機
 
 ```bash
 # 確認在專案目錄
@@ -138,28 +142,23 @@ sudo docker compose up -d --build
 sudo docker compose ps
 ```
 
-**預期輸出** (所有服務應顯示 `Up`)：
+**預期結果**：所有服務狀態為 `Up` 或「執行中」
 
-```text
-NAME                STATUS          PORTS
-climate-monitor     Up              
-cratedb             Up              0.0.0.0:4200->4200/tcp, 0.0.0.0:4500->4500/tcp
-db                  Up              5432/tcp
-redis               Up              6379/tcp
-superset            Up              0.0.0.0:8088->8088/tcp
-cloudflared         Up (若有設定 Tunnel)
-```
+| 容器名稱        | 狀態   | 說明           |
+|-----------------|--------|----------------|
+| climate-monitor | 執行中 | 資料採集服務   |
+| cratedb         | 執行中 | 時序資料庫     |
+| superset        | 執行中 | 視覺化平台     |
+| db              | 執行中 | Superset 元資料庫 |
+| redis           | 執行中 | Superset 快取  |
 
 ### 步驟 4：初始化 CrateDB
 
-1. **開啟 CrateDB Admin UI**：`http://<NAS-IP>:4200`
-
-2. **執行初始化 SQL**：
-   - 點選左側 **Console** 分頁
-   - 複製 `scripts/init_db.sql` 的內容並貼上
-   - 點選 **Execute Query** 或按 `Ctrl+Enter`
-
-3. **驗證資料表建立**：
+1. 開啟瀏覽器：`http://<NAS-IP>:4200`
+2. 點選左側 **Console** 分頁
+3. 複製 `scripts/init_db.sql` 的內容並貼上
+4. 點選 **Execute Query** 或按 `Ctrl+Enter`
+5. 驗證資料表建立：
 
    ```sql
    SHOW TABLES;
@@ -169,39 +168,43 @@ cloudflared         Up (若有設定 Tunnel)
 
 ### 步驟 5：初始化 Superset
 
-```bash
-# 等待所有服務啟動完成 (約 30 秒)
-sleep 30
+#### 方式 A：透過 Container Manager UI
 
-# 執行初始化
+1. 開啟 **Container Manager** → **專案** → `climate-monitor`
+2. 找到 `superset-init` 容器
+3. 點選容器 → **啟動**（或右鍵 → 啟動）
+4. 等待約 30-60 秒，容器會自動停止
+5. 查看日誌確認初始化成功：
+   - 右鍵 → **詳細資訊** → **日誌**
+   - 應顯示 `Superset initialization complete`
+
+#### 方式 B：透過 SSH 終端機
+
+```bash
+cd /volume1/docker/climate-monitor
 sudo docker compose up superset-init
 ```
 
-> **注意**：執行完成後，`superset-init` 容器會停止（正常現象）。若失敗，請檢查 `db` 與 `redis` 是否正常運行。
-
-### 步驟 6：停止或移除 superset-init 容器（重要！）
+### 步驟 6：移除 superset-init 容器（重要！）
 
 **⚠️ NAS 環境特殊注意事項**：
 
-在 Synology NAS 上，`superset-init` 容器完成初始化後**不會自動移除**，會持續顯示為「已停止」狀態。這會導致 Container Manager 反覆發送「容器不預期停止」的通知。
+`superset-init` 完成初始化後會停止，但 Container Manager 會反覆發送「容器不預期停止」的通知。需手動移除該容器。
 
-**解決方案**：初始化完成後，手動停止並移除該容器：
+#### 方式 A：透過 Container Manager UI
+
+1. 開啟 **Container Manager** → **容器**
+2. 找到 `superset-init` 容器
+3. 右鍵 → **停止或刪除**
+4. 確認停止或刪除
+
+#### 方式 B：透過 SSH 終端機
 
 ```bash
-# 停止 superset-init 容器
-sudo docker compose down superset-init
-
-# or 停止並移除 superset-init 容器
 sudo docker compose rm -f superset-init
 ```
 
-或透過 Container Manager UI：
-
-1. 開啟 Container Manager
-2. 找到 `superset-init` 容器
-3. 右鍵 → 停止或刪除
-
-> **說明**：`superset-init` 是一次性初始化任務，完成後即可刪除。若需重新初始化 Superset，可再次執行 `docker compose up superset-init`。
+> **說明**：`superset-init` 是一次性初始化任務，刪除後不影響 Superset 運作。若需重新初始化，可再次建立並啟動該容器。
 
 ---
 
@@ -209,29 +212,32 @@ sudo docker compose rm -f superset-init
 
 ### 檢查點 1：容器狀態
 
+#### 透過 Container Manager UI
+
+1. 開啟 **Container Manager** → **專案** → `climate-monitor`
+2. 確認所有容器狀態為「執行中」（綠色圖示）
+
+#### 透過 SSH 終端機
+
 ```bash
 sudo docker compose ps
 ```
 
-**期望結果**：所有服務狀態為 `Up`，無 `Restarting` 或 `Exit` 狀態。
-
-### 檢查點 2：CrateDB 連線
-
-```bash
-# 測試 HTTP 端口
-curl http://localhost:4200
-
-# 測試 PostgreSQL 端口
-docker exec -it cratedb crash --command "SELECT 1;"
-```
-
-### 檢查點 3：Superset 登入
+### 檢查點 2：Superset 登入
 
 1. 開啟瀏覽器：`http://<NAS-IP>:8088`
 2. 使用 `.env` 中設定的帳號密碼登入
-3. 確認首頁顯示「Climate Monitor」儀表板
+3. 確認可正常進入儀表板頁面
 
-### 檢查點 4：資料採集
+### 檢查點 3：資料採集
+
+#### 透過 Container Manager UI
+
+1. **Container Manager** → **容器** → `climate-monitor`
+2. 右鍵 → **詳細資訊** → **日誌**
+3. 確認顯示資料採集訊息
+
+#### 透過 SSH 終端機
 
 ```bash
 sudo docker compose logs -f climate-monitor
@@ -241,12 +247,14 @@ sudo docker compose logs -f climate-monitor
 
 ```text
 INFO - Discovered H200 hub: <device_name>
-INFO - Found 3 sensors: T315_1, T315_2, T315_3
+INFO - Found sensors: T315_1, T315_2
 INFO - Collected data for T315_1: temp=24.5°C, humidity=65%
 INFO - Successfully inserted data into CrateDB
 ```
 
-### 檢查點 5：資料庫寫入
+### 檢查點 4：資料庫寫入
+
+在 CrateDB Admin UI（`http://<NAS-IP>:4200`）執行：
 
 ```sql
 SELECT COUNT(*) FROM sensor_readings;
@@ -257,7 +265,18 @@ SELECT * FROM sensor_readings ORDER BY ts DESC LIMIT 5;
 
 ## 服務管理
 
-### 常用指令
+### 透過 Container Manager UI
+
+| 操作 | 步驟 |
+|------|------|
+| **查看容器狀態** | Container Manager → 專案/容器 |
+| **查看日誌** | 容器 → 右鍵 → 詳細資訊 → 日誌 |
+| **重啟容器** | 容器 → 右鍵 → 重新啟動 |
+| **停止容器** | 容器 → 右鍵 → 停止 |
+| **啟動容器** | 容器 → 右鍵 → 啟動 |
+| **重建專案** | 專案 → 右鍵 → 建置 |
+
+### 透過 SSH 終端機
 
 ```bash
 # 查看所有服務狀態
@@ -287,33 +306,42 @@ sudo docker system prune -a -f
 
 ### 更新應用程式
 
+#### 透過 Container Manager UI
+
+1. 更新專案檔案（透過 File Station 上傳新版本）
+2. **Container Manager** → **專案** → `climate-monitor`
+3. 右鍵 → **建置**
+4. 完成後，容器會自動重新啟動
+
+#### 透過 SSH 終端機
+
 ```bash
-# 拉取最新程式碼 (若使用 Git)
 cd /volume1/docker/climate-monitor
 sudo git pull
-
-# 重新建構並啟動
-sudo docker compose up -d --build climate-monitor
-
-# 查看日誌確認正常運行
-sudo docker compose logs -f climate-monitor
+sudo docker compose up -d --build
 ```
 
 ---
 
 ## 自動啟動設定
 
-在 Synology Task Scheduler 設定開機自動啟動：
+設定 NAS 開機後自動啟動 Climate Monitor：
 
-1. DSM 控制台 → 任務排程器 → 新增 → 觸發的任務 → 使用者定義的指令碼
-2. **一般**：名稱 `Start Climate Monitor`，使用者 `root`
-3. **任務設定**：
+1. DSM **控制台** → **任務排程器**
+2. **新增** → **觸發的任務** → **使用者定義的指令碼**
+3. **一般**：
+   - 名稱：`Start Climate Monitor`
+   - 使用者：`root`
+   - 事件：開機
+4. **任務設定** → **執行指令**：
 
    ```bash
    sleep 60 && cd /volume1/docker/climate-monitor && docker compose up -d
    ```
 
-4. **排程**：選擇「開機」
+5. 點選 **確定**
+
+> **說明**：`sleep 60` 確保 Docker 服務完全啟動後再執行。
 
 ---
 
