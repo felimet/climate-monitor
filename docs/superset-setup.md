@@ -60,7 +60,7 @@ Superset 預設顯示 UTC 時間。由於資料庫儲存的是 `TIMESTAMP WITH T
 | **Column Name** | `ts` |
 | **Label** | `Time` |
 | **SQL Expression** | `timezone('Asia/Taipei', ts)` |
-| **Data Type** | `DATETIME` |
+| **Data Type** | `DATETIME`、`TIMESTAMP` |
 | **Datetime Format** | `epoch_ms` |
 | **Is Temporal** | ✅ 勾選 |
 

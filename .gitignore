@@ -37,3 +37,4 @@ docker/db_home/
 
 # --- Agent ---
 .agent/
+.claude/
