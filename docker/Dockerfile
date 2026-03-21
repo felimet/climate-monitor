@@ -4,7 +4,7 @@ FROM python:3.11-slim AS builder
 WORKDIR /build
 
 # 安裝 uv 以加速依賴解析
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+RUN pip install --no-cache-dir uv
 
 # 複製依賴檔案
 COPY pyproject.toml README.md ./

@@ -18,6 +18,12 @@ x-common: &common
       max-size: "10m"
       max-file: "3"
 
+volumes:
+  cratedb-data:
+  redis-data:
+  postgres-data:
+  superset-home:
+
 services:
   # CrateDB 資料庫
   cratedb:
@@ -28,13 +34,16 @@ services:
       - "4500:4200"   # HTTP 管理介面
       # - "5432:5432"   # PostgreSQL 連線協定
     volumes:
-      - ./data/cratedb:/data
+      - cratedb-data:/data
     environment:
       - CRATE_HEAP_SIZE=2g
       - TZ=Asia/Taipei
-    # 以 root 啟動，預建目錄並開放權限後透過原始 entrypoint 降權
-    entrypoint: ["/bin/sh", "-c", "mkdir -p /data/log /data/data && chmod -R 777 /data && exec /docker-entrypoint.sh crate -Ccluster.name=climate-cluster -Cnode.name=crate-nas -Cnetwork.host=0.0.0.0 -Cdiscovery.type=single-node"]
-    command: []
+    command: >
+      crate
+        -Ccluster.name=climate-cluster
+        -Cnode.name=crate-nas
+        -Cnetwork.host=0.0.0.0
+        -Cdiscovery.type=single-node
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4200/ || exit 1"]
       interval: 30s
@@ -52,11 +61,12 @@ services:
     # 在 NAS 上直接建構映像檔（需上傳完整 source code）
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/Dockerfile
     image: climate-monitor:latest
     container_name: climate-monitor
     depends_on:
-      - cratedb
+      cratedb:
+        condition: service_healthy
     environment:
       # 在 prod 環境，使用服務名稱連線資料庫
       - CRATEDB_HOST=cratedb
@@ -73,7 +83,7 @@ services:
     container_name: superset-cache
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
-      - ./data/redis:/data
+      - redis-data:/data
     deploy:
       resources:
         limits:
@@ -90,7 +100,7 @@ services:
       POSTGRES_USER: ${SUPERSET_POSTGRES_USER:-superset}
       POSTGRES_PASSWORD: ${SUPERSET_POSTGRES_PASSWORD:-superset}
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${SUPERSET_POSTGRES_USER:-superset}"]
       interval: 10s
@@ -108,7 +118,7 @@ services:
     <<: *common
     build:
       context: .
-      dockerfile: docker/superset/Dockerfile
+      dockerfile: ./docker/superset/Dockerfile
     image: climate-superset:latest
     container_name: superset
     environment:
@@ -128,7 +138,7 @@ services:
       redis:
         condition: service_started
     volumes:
-      - ./data/superset:/app/superset_home
+      - superset-home:/app/superset_home
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
       interval: 60s
@@ -143,11 +153,12 @@ services:
 
   # Superset 一次性初始化（建立管理員帳號、設定資料源）
   # 使用方式：docker compose --profile init up superset-init
+  # Superset 初始化（冪等，每次啟動自動執行）
   superset-init:
     <<: *common
     build:
       context: .
-      dockerfile: docker/superset/Dockerfile
+      dockerfile: ./docker/superset/Dockerfile
     image: climate-superset:latest
     container_name: superset-init
     restart: "no"
@@ -155,13 +166,12 @@ services:
     environment:
       SQLALCHEMY_DATABASE_URI: postgresql://${SUPERSET_POSTGRES_USER:-superset}:${SUPERSET_POSTGRES_PASSWORD:-superset}@superset-db:5432/${SUPERSET_POSTGRES_DB:-superset}
     depends_on:
-      - superset
+      superset:
+        condition: service_healthy
     volumes:
-      - ./data/superset:/app/superset_home
+      - superset-home:/app/superset_home
       - ./docker/superset/superset-init.sh:/app/docker/superset/superset-init.sh
       - ./docker/superset/datasources.yaml:/app/docker/superset/datasources.yaml
-    profiles:
-      - init
 
   # Cloudflare Tunnel - 安全遠端存取
   cloudflare-tunnel:
@@ -176,7 +186,5 @@ services:
       - cratedb
     deploy:
       resources:
-        limits: 
+        limits:
           memory: 128M
-
-
