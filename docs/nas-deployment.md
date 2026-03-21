@@ -18,6 +18,32 @@
 
 ---
 
+## 儲存策略：Bind Mount vs Named Volume
+
+本專案選擇 **bind mount**（`./data/cratedb`、`./data/redis` 等）而非 Docker named volume，這是基於 Synology NAS 環境的實際運維需求所做的設計決策。
+
+### 為什麼不使用 Named Volume？
+
+Docker named volume 在一般伺服器環境中是推薦做法——由 Docker 管理、路徑固定、不受主機檔案系統影響。但在 Synology NAS 的 Container Manager 中，named volume 存在以下問題：
+
+- **不可見性**：Named volume 儲存在 `/volume1/@docker/volumes/` 深層目錄中，File Station 無法直接瀏覽，使用者必須透過 SSH 才能存取資料
+- **備份困難**：Synology 的 Hyper Backup 無法直接選擇 Docker volume 作為備份來源。使用 bind mount 後，資料目錄位於 `/volume1/docker/climate-monitor/data/`，可直接納入 Hyper Backup 任務
+- **遷移不便**：當需要將整個專案遷移至另一台 NAS 時，bind mount 只需複製整個專案目錄；named volume 則需要額外的 `docker volume` 匯出/匯入步驟
+
+### Bind Mount 的權限處理
+
+CrateDB 容器以 `crate` 用戶（UID 1000）運行，但 NAS 上由 `root` 建立的 bind mount 目錄預設權限為 `root:root`。這會導致 CrateDB 無法寫入資料目錄而啟動失敗。
+
+解決方案是在 `docker-compose.yml` 中使用自訂 entrypoint，在容器啟動時先以 root 身份建立並修正目錄權限，再切換至 `crate` 用戶執行主程式：
+
+```yaml
+entrypoint: ["/bin/sh", "-c", "mkdir -p /data/data && chown -R crate:crate /data && /docker-entrypoint.sh crate ..."]
+```
+
+這個模式確保了首次部署與後續重啟都能正確運作，無需手動在 NAS 上 SSH 設定目錄權限。
+
+---
+
 ## 前置準備
 
 ### 硬體需求 (依實際硬體需求調整)
@@ -166,45 +192,25 @@ sudo docker compose ps
 
    應顯示：`sensor_readings`、`latest_readings`、`minute_metrics`、`hourly_metrics`、`daily_stats`、`weekly_stats`、`monthly_stats`
 
-### 步驟 5：初始化 Superset
+### 步驟 5：初始化 Superset（僅首次部署）
 
-#### 方式 A：透過 Container Manager UI
+> **說明**：`superset-init` 是一次性初始化任務，使用 `profiles: ["init"]` 設定，不會隨 `docker compose up -d` 自動啟動，因此不會產生「容器不預期停止」的通知。
 
-1. 開啟 **Container Manager** → **專案** → `climate-monitor`
-2. 找到 `superset-init` 容器
-3. 點選容器 → **啟動**（或右鍵 → 啟動）
-4. 等待約 30-60 秒，容器會自動停止
-5. 查看日誌確認初始化成功：
-   - 右鍵 → **詳細資訊** → **日誌**
-   - 應顯示 `Superset initialization complete`
-
-#### 方式 B：透過 SSH 終端機
+#### 方式 A：透過 SSH 終端機（推薦）
 
 ```bash
 cd /volume1/docker/climate-monitor
-sudo docker compose up superset-init
+sudo docker compose --profile init up superset-init
 ```
 
-### 步驟 6：移除 superset-init 容器（重要！）
+等待約 30-60 秒，容器會自動停止。確認日誌顯示 `Superset initialization complete`。
 
-**⚠️ NAS 環境特殊注意事項**：
+#### 方式 B：透過 Container Manager UI
 
-`superset-init` 完成初始化後會停止，但 Container Manager 會反覆發送「容器不預期停止」的通知。需手動移除該容器。
+1. Container Manager 不直接支援 profile 啟動，建議使用 SSH 方式
+2. 或者暫時將 `docker-compose.yml` 中 superset-init 的 `profiles` 段落註解掉，透過 UI 啟動後再恢復
 
-#### 方式 A：透過 Container Manager UI
-
-1. 開啟 **Container Manager** → **容器**
-2. 找到 `superset-init` 容器
-3. 右鍵 → **停止或刪除**
-4. 確認停止或刪除
-
-#### 方式 B：透過 SSH 終端機
-
-```bash
-sudo docker compose rm -f superset-init
-```
-
-> **說明**：`superset-init` 是一次性初始化任務，刪除後不影響 Superset 運作。若需重新初始化，可再次建立並啟動該容器。
+> **重新初始化**：若需重新初始化 Superset，再次執行 `docker compose --profile init up superset-init` 即可。
 
 ---
 
@@ -294,8 +300,8 @@ sudo docker compose restart
 # 停止所有服務
 sudo docker compose down
 
-# 停止並刪除 Volume (謹慎使用，會清除資料)
-sudo docker compose down -v
+# 停止服務 (資料保留於 ./data/ 目錄)
+sudo docker compose down
 
 # 更新程式碼後重新部署
 sudo docker compose up -d --build

@@ -21,6 +21,7 @@
           │  (Python Container)       │
           │  - Auto Discovery         │
           │  - Data Collector         │
+          │  - Connection Validator   │
           │  - Error Handling         │
           └───────────┬───────────────┘
                       │ HTTP (Port 4200)
@@ -97,10 +98,29 @@ CrateDB 並非時序資料庫的第一選擇（如 InfluxDB、TimescaleDB 更為
 | `month_ts` | `TIMESTAMP WITH TIME ZONE` | 月份分區鍵 (自動產生) |
 | `device_id` | `TEXT` | 感測器唯一識別碼 |
 | `device_name` | `TEXT` | 感測器名稱 |
-| `temperature` | `DOUBLE PRECISION` | 溫度 (°C) |
-| `humidity` | `DOUBLE PRECISION` | 相對濕度 (%) |
+| `temperature` | `DOUBLE PRECISION` | 溫度 (°C)，驗證失敗時為 NULL |
+| `humidity` | `DOUBLE PRECISION` | 相對濕度 (%)，驗證失敗時為 NULL |
 | `battery_level` | `INTEGER` | 電池電量 (%) |
-| `rssi` | `INTEGER` | Wi-Fi 訊號強度 (dBm) |
+| `rssi` | `INTEGER` | 訊號強度 (dBm) |
+| `report_interval` | `INTEGER` | 裝置回報間隔 (秒) |
+| `device_time` | `TEXT` | 裝置回報時間戳 |
+| `is_valid` | `BOOLEAN` | 資料是否通過連線驗證 |
+| `stale_reasons` | `TEXT` | 驗證失敗原因 |
+| `failed_checks` | `INTEGER` | 失敗的檢查項數 |
+| `check_rssi_weak` | `BOOLEAN` | RSSI 低於門檻 |
+| `check_rssi_frozen` | `BOOLEAN` | RSSI 連續凍結 |
+| `check_temp_frozen` | `BOOLEAN` | 溫溼度連續凍結 |
+| `check_time_frozen` | `BOOLEAN` | device_time 停止遞增 |
+
+#### 驗證欄位設計原理
+
+H200 Hub 的 API 不提供子裝置的連線狀態，感測器斷線後 Hub 仍持續回傳最後一筆快取資料。上述驗證欄位的設計理念如下：
+
+- **`is_valid` (BOOLEAN)**：明確標記每筆資料的可信度，讓下游查詢和儀表板可透過 `WHERE is_valid = TRUE` 過濾不可信數據，無需知道驗證邏輯的細節。
+- **`temperature`/`humidity` 寫入 NULL**：Stale 資料不保留溫溼度值，確保 `AVG(temperature)` 等聚合函式自動排除不可信數據，避免需要額外的 `WHERE` 條件。選擇 NULL 而非哨兵值（如 -999）是為了符合 SQL 語意慣例。
+- **`stale_reasons` (TEXT)**：以分號分隔的失敗檢查描述（如 `"RSSI frozen at -80 dBm for 5 consecutive polls; Temperature (25.3) and humidity (62.1) frozen for 5 consecutive polls"`），供運維人員查詢 `SELECT device_name, stale_reasons FROM sensor_readings WHERE is_valid = FALSE` 快速診斷感測器問題（RF 干擾、電池耗盡、距離過遠等）。
+- **四項 check 布林旗標**：各自記錄該筆資料在哪些項目上失敗，便於統計分析（例如：「某感測器 80% 的 stale 事件都是 RSSI 凍結觸發的，代表 RF 環境需要改善」）。
+- **`report_interval` 和 `device_time` 保留**：即使資料被判定為 stale，這兩個欄位仍保留原始值，提供驗證邏輯的審計軌跡和除錯依據。
 
 ### 統計 Views
 
@@ -114,6 +134,9 @@ CrateDB 並非時序資料庫的第一選擇（如 InfluxDB、TimescaleDB 更為
 | `daily_stats`       | `day_asia_taipei`       | 每日統計            | 長期歷史回顧    |
 | `weekly_stats`      | `week_asia_taipei`      | 每週統計            | 週報表          |
 | `monthly_stats`     | `month_asia_taipei`     | 每月統計            | 年度分析        |
+| `stale_events`      | `event_time_asia_taipei`| 驗證失敗事件        | 連線品質監控    |
+
+所有聚合 View 都包含 `stale_count` 欄位（使用 `FILTER (WHERE is_valid = FALSE)` 統計），方便在 Superset 中建立資料品質趨勢圖表。`stale_events` View 專門彙整所有驗證失敗記錄，包含失敗原因和各項檢查旗標，是連線品質監控和故障排除的核心查詢來源。
 
 ---
 

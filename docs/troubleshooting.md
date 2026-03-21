@@ -40,7 +40,7 @@
    - **權限問題**：
 
      ```bash
-     sudo chown -R 1000:1000 cratedb_data/
+     sudo chown -R 1000:1000 data/cratedb/
      ```
 
    - **記憶體不足**：調整 `docker-compose.yml` 中的 `mem_limit`
@@ -89,13 +89,14 @@
 2. **手動重新初始化**：
 
    ```bash
-   # 刪除舊的 Superset 元資料庫
-   docker compose down -v
-   
+   # 停止服務並清除 Superset 元資料庫
+   docker compose down
+   sudo rm -rf data/postgres/*
+
    # 重新啟動並初始化
    docker compose up -d
    sleep 30
-   docker compose up superset-init
+   docker compose --profile init up superset-init
    ```
 
 3. **檢查日誌**：
@@ -115,8 +116,8 @@
 1. **權限問題** (常見於 Linux/NAS)：
 
    ```bash
-   sudo chown -R 1000:1000 cratedb_data/
-   sudo chmod -R 755 cratedb_data/
+   sudo chown -R 1000:1000 data/cratedb/
+   sudo chmod -R 755 data/cratedb/
    ```
 
 2. **磁碟空間**：
@@ -191,17 +192,12 @@ sudo docker compose ps
 sudo docker compose down
 ```
 
-### 步驟 3：刪除 CrateDB Volume
+### 步驟 3：清除 CrateDB 資料
 
 ```bash
-# 列出所有 volumes，確認實際名稱
-sudo docker volume ls | grep crate
-
-# 刪除 CrateDB volume
-sudo docker volume rm climate-monitor_cratedb_data
+# 刪除 CrateDB bind mount 資料
+sudo rm -rf data/cratedb/*
 ```
-
-> **Volume 名稱說明**：名稱取決於 Docker Compose 專案名稱。若 `docker-compose.yml` 中有 `name: climate-tapo-monitor`，則為 `climate-tapo-monitor_cratedb_data`。
 
 ### 步驟 4：重新啟動 CrateDB
 
@@ -254,6 +250,46 @@ sudo docker compose logs -f climate-monitor
   ```bash
   sudo chmod 666 /var/run/docker.sock
   ```
+
+---
+
+## 問題 9：感測器資料顯示 NULL
+
+**症狀**：CrateDB 中 `temperature` 和 `humidity` 為 NULL，`is_valid` 為 `false`
+
+**說明**：這表示連線狀態驗證器判定資料為過時快取（stale）。
+
+**解決方案**：
+
+1. **查看 stale 日誌**：
+
+   ```bash
+   cat data/monitor_logs/stale.log
+   ```
+
+2. **檢查 `stale_reasons` 欄位**：
+
+   ```sql
+   SELECT ts, device_name, stale_reasons
+   FROM sensor_readings
+   WHERE is_valid = false
+   ORDER BY ts DESC LIMIT 10;
+   ```
+
+3. **常見原因與對策**：
+
+   | 原因 | 對策 |
+   |------|------|
+   | RSSI 門檻 + RSSI 凍結 | 感測器可能離 Hub 太遠，嘗試移近 |
+   | 溫溼度凍結 + device_time 凍結 | 感測器可能已斷線，檢查電池或重新配對 |
+   | 全部凍結 | Hub 正在回傳快取，重啟 H200 網關 |
+
+4. **調整驗證靈敏度**（`.env`）：
+
+   ```env
+   VALIDATOR_MIN_FAILED_CHECKS=3   # 提高門檻，減少誤判
+   VALIDATOR_FROZEN_WINDOW=600     # 延長凍結判定窗口
+   ```
 
 ---
 

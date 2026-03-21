@@ -85,11 +85,11 @@ docker compose -f docker-compose.pc.yml up -d
 ### 步驟 5：初始化 Superset
 
 ```bash
-# 等待服務啟動完成 (約 30 秒)
-docker compose -f docker-compose.pc.yml up superset-init
+# 等待服務啟動完成 (約 30 秒)，首次部署才需執行
+docker compose -f docker-compose.pc.yml --profile init up superset-init
 ```
 
-> **注意**：此步驟會建立 Superset 管理員帳號、設定資料源。執行完成後，`superset-init` 容器會自動停止（正常現象）。
+> **注意**：此步驟會建立 Superset 管理員帳號、設定資料源。僅首次部署時需執行一次，完成後容器會自動停止。
 
 ### 步驟 6：初始化 CrateDB
 
@@ -130,7 +130,7 @@ docker compose -f docker-compose.pc.yml ps
 
 ```sql
 SELECT COUNT(*) FROM sensor_readings;
-SELECT * FROM sensor_readings ORDER BY ts DESC LIMIT 5;
+SELECT * FROM sensor_readings WHERE is_valid = true ORDER BY ts DESC LIMIT 5;
 ```
 
 等待 1-2 個採集週期後，應可看到資料。
