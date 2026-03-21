@@ -1,8 +1,7 @@
 """感測器資料模型定義。"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 
 
 @dataclass(frozen=True, slots=True)
@@ -10,7 +9,7 @@ class SensorReading:
     """表示單筆溫溼度感測器讀取資料。
 
     屬性:
-        timestamp: 讀取時間（Asia/Taipei）。
+        timestamp: 讀取時間（UTC）。
         device_id: 感測器裝置唯一識別碼。
         device_name: 人類可讀的感測器名稱。
         temperature: 溫度（攝氏度）。
@@ -22,30 +21,57 @@ class SensorReading:
     timestamp: datetime
     device_id: str
     device_name: str
-    temperature: float
-    humidity: float
+    temperature: float | None
+    humidity: float | None
     battery_level: int
     rssi: int
+    report_interval: int = 0
+    device_time: str = ""
+    is_valid: bool = True
+    stale_reasons: str = ""
+    failed_checks: int = 0
+    check_rssi_weak: bool = False
+    check_rssi_frozen: bool = False
+    check_temp_frozen: bool = False
+    check_time_frozen: bool = False
 
     @classmethod
     def create(
         cls,
         device_id: str,
         device_name: str,
-        temperature: float,
-        humidity: float,
+        temperature: float | None,
+        humidity: float | None,
         battery_level: int,
         rssi: int,
+        report_interval: int = 0,
+        device_time: str = "",
+        is_valid: bool = True,
+        stale_reasons: str = "",
+        failed_checks: int = 0,
+        check_rssi_weak: bool = False,
+        check_rssi_frozen: bool = False,
+        check_temp_frozen: bool = False,
+        check_time_frozen: bool = False,
     ) -> "SensorReading":
-        """建立帶有當前 Asia/Taipei 時間戳記的讀取資料。"""
+        """建立帶有當前 UTC 時間戳記的讀取資料。"""
         return cls(
-            timestamp=datetime.now(ZoneInfo("Asia/Taipei")),
+            timestamp=datetime.now(timezone.utc),
             device_id=device_id,
             device_name=device_name,
             temperature=temperature,
             humidity=humidity,
             battery_level=battery_level,
             rssi=rssi,
+            report_interval=report_interval,
+            device_time=device_time,
+            is_valid=is_valid,
+            stale_reasons=stale_reasons,
+            failed_checks=failed_checks,
+            check_rssi_weak=check_rssi_weak,
+            check_rssi_frozen=check_rssi_frozen,
+            check_temp_frozen=check_temp_frozen,
+            check_time_frozen=check_time_frozen,
         )
 
     def to_dict(self) -> dict:
@@ -58,6 +84,15 @@ class SensorReading:
             "humidity": self.humidity,
             "battery_level": self.battery_level,
             "rssi": self.rssi,
+            "report_interval": self.report_interval,
+            "device_time": self.device_time,
+            "is_valid": self.is_valid,
+            "stale_reasons": self.stale_reasons,
+            "failed_checks": self.failed_checks,
+            "check_rssi_weak": self.check_rssi_weak,
+            "check_rssi_frozen": self.check_rssi_frozen,
+            "check_temp_frozen": self.check_temp_frozen,
+            "check_time_frozen": self.check_time_frozen,
         }
 
 

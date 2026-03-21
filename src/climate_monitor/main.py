@@ -79,6 +79,16 @@ def main() -> None:
     logger.info("Tapo 網關：%s", settings.tapo_host)
     logger.info("CrateDB：%s:%d", settings.cratedb_host, settings.cratedb_port)
     logger.info("蒐集間隔：%d 秒", settings.collection_interval)
+    logger.info(
+        "連線驗證：RSSI 門檻=%d dBm、凍結窗口=%d 秒（=%d 次）、"
+        "歷史窗口=%d 秒（=%d 筆）、交叉確認門檻=%d 項",
+        settings.validator_rssi_threshold,
+        settings.validator_frozen_window,
+        settings.validator_max_frozen_count,
+        settings.validator_history_window,
+        settings.validator_history_size,
+        settings.validator_min_failed_checks,
+    )
 
     try:
         asyncio.run(run_collector())
