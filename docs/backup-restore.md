@@ -8,9 +8,10 @@
 
 | 項目 | 路徑/位置 | 重要性 | 說明 |
 |------|-----------|--------|------|
-| **CrateDB 資料** | `cratedb_data/` | 高 | 所有歷史監控資料 |
+| **CrateDB 資料** | `data/cratedb/` | 高 | 所有歷史監控資料 |
 | **環境變數** | `.env` | 高 | 包含密碼與配置 |
-| **Superset 元資料** | PostgreSQL Volume | 中 | 儀表板與資料源設定 |
+| **Superset 元資料** | `data/postgres/` | 中 | 儀表板與資料源設定 |
+| **Stale 日誌** | `data/monitor_logs/` | 低 | 連線驗證失敗事件記錄 |
 | **程式碼** | Git Repository | 低 | 可從 Git 重新拉取 |
 
 ---
@@ -33,7 +34,7 @@ sudo docker compose up -d
 
 ```bash
 cd /volume1/docker/climate-monitor
-sudo tar -czf /volume1/backups/cratedb_$(date +%Y%m%d).tar.gz cratedb_data/
+sudo tar -czf /volume1/backups/cratedb_$(date +%Y%m%d).tar.gz data/cratedb/
 ```
 
 ### 方法 3：匯出為 JSON
@@ -53,7 +54,7 @@ docker cp cratedb:/tmp/backup ./backup_$(date +%Y%m%d)/
 ```bash
 sudo docker compose down
 sudo tar -xzf /volume1/backups/climate-monitor_YYYYMMDD.tar.gz -C /
-sudo chown -R 1000:1000 /volume1/docker/climate-monitor/cratedb_data/
+sudo chown -R 1000:1000 /volume1/docker/climate-monitor/data/cratedb/
 sudo docker compose up -d
 ```
 
@@ -61,9 +62,9 @@ sudo docker compose up -d
 
 ```bash
 sudo docker compose down
-sudo rm -rf cratedb_data/*
+sudo rm -rf data/cratedb/*
 sudo tar -xzf /volume1/backups/cratedb_YYYYMMDD.tar.gz
-sudo chown -R 1000:1000 cratedb_data/
+sudo chown -R 1000:1000 data/cratedb/
 sudo docker compose up -d
 ```
 
@@ -93,7 +94,7 @@ DATE=$(date +%Y%m%d)
 
 mkdir -p $BACKUP_DIR
 cd $PROJECT_DIR
-tar -czf $BACKUP_DIR/cratedb_$DATE.tar.gz cratedb_data/
+tar -czf $BACKUP_DIR/cratedb_$DATE.tar.gz data/cratedb/
 cp $PROJECT_DIR/.env $BACKUP_DIR/env_$DATE.bak
 
 # 清理 30 天前的備份

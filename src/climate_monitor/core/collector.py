@@ -1,10 +1,15 @@
 """感測器資料蒐集服務。"""
 
 import asyncio
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from climate_monitor.config import Settings
 from climate_monitor.core.tapo_client import TapoClient, TapoClientError
+from climate_monitor.core.validator import (
+    SensorSnapshot,
+    T315ConnectionValidator,
+)
 from climate_monitor.infra.database import CrateDBClient, DatabaseError
 from climate_monitor.models import CollectorStats
 from climate_monitor.utils.logging import get_logger
@@ -37,6 +42,12 @@ class SensorCollector:
         self._db = db_client
         self._running = False
         self._stats = CollectorStats()
+        self._validator = T315ConnectionValidator(
+            rssi_threshold=settings.validator_rssi_threshold,
+            max_frozen_count=settings.validator_max_frozen_count,
+            history_size=settings.validator_history_size,
+            min_failed_checks=settings.validator_min_failed_checks,
+        )
 
     @property
     def stats(self) -> CollectorStats:
@@ -97,20 +108,63 @@ class SensorCollector:
             logger.warning("未蒐集到感測器資料")
             return
 
-        # 記錄讀取資料
+        # 驗證並記錄讀取資料
+        validated_readings = []
         for reading in readings:
-            logger.info(
-                "感測器 %s：%.1f°C、%.1f%% 濕度、電池=%d%%、訊號=%ddBm",
-                reading.device_name,
-                reading.temperature,
-                reading.humidity,
-                reading.battery_level,
-                reading.rssi,
+            snapshot = SensorSnapshot(
+                temperature=reading.temperature,
+                humidity=reading.humidity,
+                rssi=reading.rssi,
+                report_interval=reading.report_interval,
+                device_time=reading.device_time,
+            )
+            result = self._validator.validate(reading.device_id, snapshot)
+
+            # 所有讀數都寫入驗證檢查結果欄位
+            check_fields = dict(
+                failed_checks=result.failed_checks,
+                check_rssi_weak=result.check_rssi_weak,
+                check_rssi_frozen=result.check_rssi_frozen,
+                check_temp_frozen=result.check_temp_frozen,
+                check_time_frozen=result.check_time_frozen,
             )
 
-        # 儲存至資料庫
+            if result.is_valid:
+                logger.info(
+                    "感測器 %s：%.1f°C、%.1f%% 濕度、電池=%d%%、訊號=%ddBm",
+                    reading.device_name,
+                    reading.temperature,
+                    reading.humidity,
+                    reading.battery_level,
+                    reading.rssi,
+                )
+                validated_readings.append(
+                    replace(reading, **check_fields)
+                )
+            else:
+                stale_reasons = "; ".join(result.reasons)
+                logger.warning(
+                    "感測器 %s 資料不可信（%d/%d 項失敗）：訊號=%ddBm | %s",
+                    reading.device_name,
+                    result.failed_checks,
+                    self._settings.validator_min_failed_checks,
+                    reading.rssi,
+                    stale_reasons,
+                )
+                validated_readings.append(
+                    replace(
+                        reading,
+                        temperature=None,
+                        humidity=None,
+                        is_valid=False,
+                        stale_reasons=stale_reasons,
+                        **check_fields,
+                    )
+                )
+
+        # 儲存至資料庫（stale 資料的 temperature/humidity 為 NULL）
         try:
-            count = self._db.insert_readings(readings)
+            count = self._db.insert_readings(validated_readings)
             self._stats.readings_saved += count
             self._stats.last_collection = datetime.now(timezone.utc)
             logger.debug("已儲存 %d 筆資料至資料庫", count)

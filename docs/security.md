@@ -192,6 +192,31 @@ docker system prune -f
 
 ---
 
+## 連線驗證器安全考量
+
+### Stale 日誌檔案權限
+
+驗證器將 stale 事件寫入 `/app/logs/stale.log`（Docker 掛載於 `./data/monitor_logs/`）。此日誌包含感測器 ID、RSSI 值、溫溼度讀數等設備資訊。雖然這些資料本身不屬於高敏感資訊，仍應注意：
+
+- **檔案權限**：確保 `./data/monitor_logs/` 目錄僅限管理者存取（`chmod 750`），避免同一台 NAS 上的其他使用者讀取設備拓撲資訊
+- **日誌輪替**：日誌檔案會持續增長，建議搭配 Docker 的 `json-file` logging driver 限制（已在 `docker-compose.yml` 中設定 `max-size: 10m, max-file: 3`）
+
+### stale_reasons 欄位資訊揭露
+
+`stale_reasons` 欄位記錄了驗證失敗的具體原因，包含 RSSI 數值、溫溼度值、凍結次數等。若 Superset 儀表板對外開放（透過 Cloudflare Tunnel），需考量：
+
+- **設備拓撲推斷**：持續觀察 RSSI 值與凍結模式，可推斷感測器的物理位置與 Hub 的距離關係
+- **建議**：對外公開的 Dashboard 應使用 `WHERE is_valid = TRUE` 過濾，僅顯示有效資料。將含有 `stale_reasons` 的診斷用 Dashboard 限制於管理員角色
+
+### 驗證器資源消耗
+
+驗證器為每個 device_id 維護獨立的歷史紀錄（`deque(maxlen=history_size)`）。在正常設定下（`history_size=20`，3-5 個感測器），記憶體開銷可忽略。但若：
+
+- **大量感測器**：歷史紀錄隨裝置數線性增長。100 個感測器 × 20 筆快照 ≈ 2000 個 `SensorSnapshot` 物件，仍在合理範圍內
+- **極短採樣間隔**：`COLLECTION_INTERVAL=10` 搭配 `FROZEN_WINDOW=300` 需要 30 筆歷史，增加每次驗證的迴圈比對開銷。在 NAS 等低效能環境中，建議監控 CPU 使用率
+
+---
+
 ## 安全性檢查清單
 
 - [ ] 已變更所有預設密碼

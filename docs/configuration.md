@@ -29,6 +29,43 @@
 |------|------|--------|------|
 | `COLLECTION_INTERVAL` | ❌ | `60` | 資料收集間隔（秒） |
 
+### 連線狀態驗證設定
+
+| 變數 | 必填 | 預設值 | 說明 |
+|------|------|--------|------|
+| `VALIDATOR_RSSI_THRESHOLD` | ❌ | `-75` | RSSI 門檻 (dBm)，低於此值視為訊號過弱 |
+| `VALIDATOR_FROZEN_WINDOW` | ❌ | `300` | 凍結判定時間窗口 (秒) |
+| `VALIDATOR_HISTORY_WINDOW` | ❌ | `1200` | 歷史記錄時間窗口 (秒) |
+| `VALIDATOR_MIN_FAILED_CHECKS` | ❌ | `2` | 至少幾項檢查同時失敗才判定為 stale (1-4) |
+| `STALE_LOG_PATH` | ❌ | `/app/logs/stale.log` | Stale 事件日誌檔案路徑 |
+
+#### 驗證器預設值設計考量
+
+**`VALIDATOR_RSSI_THRESHOLD = -95 dBm`**
+
+T315 使用 Sub-1GHz 無線協定與 H200 通訊。在一般室內環境中，正常連線的 RSSI 通常在 -30 ~ -80 dBm 範圍內。低於 -95 dBm 時訊號已極度微弱，封包遺失率大幅上升。此門檻設定為較寬鬆的值，避免在中等距離的合法連線中產生誤判；若感測器與 Hub 距離較短（< 5m），可調高至 -70 dBm 以提早偵測異常。
+
+**`VALIDATOR_FROZEN_WINDOW = 900 秒（15 分鐘）`**
+
+此值決定連續多少次取樣 RSSI/溫溼度不變時視為「凍結」。在預設 `COLLECTION_INTERVAL=60` 秒下，等同於 15 次連續不變才觸發（`900 / 60 = 15`）。選擇 15 分鐘是因為短期環境穩定（如夜間空調恆溫）可能導致溫溼度暫時不變，但超過 15 分鐘完全不變（含 RSSI 小數位 jitter）在物理上極不可能。若環境極度穩定（如恆溫恆濕實驗室），建議調高至 1800 秒以避免誤判。
+
+**`VALIDATOR_HISTORY_WINDOW = 1800 秒（30 分鐘）`**
+
+定義每裝置保留的歷史快照時間範圍，用於凍結趨勢分析。設為 `FROZEN_WINDOW` 的 2 倍（1800 / 900 = 2x），確保歷史紀錄涵蓋足夠的樣本來判斷凍結模式。過短的歷史窗口可能無法累積足夠數據點，過長則增加記憶體使用。在預設設定下，每裝置最多保留 30 筆快照（`1800 / 60 = 30`），記憶體開銷可忽略。
+
+**`VALIDATOR_MIN_FAILED_CHECKS = 3（共 4 項中至少 3 項）`**
+
+交叉驗證的核心參數。每項檢查都可能因合法原因單獨失敗（如 RSSI 在門檻邊緣暫時震盪、恆溫環境下溫度暫時不變），因此要求多項同時失敗才判定為 stale。預設為 3/4，意味著僅在大多數指標都顯示異常時才標記資料不可信，是高可靠性的保守設定。若需要更敏感的偵測（接受較多誤判），可降至 2。
+
+#### 調校指南：靈敏度與誤判率
+
+| 場景 | 調整方式 | 影響 |
+|------|----------|------|
+| 誤判太多（有效資料被標記為 stale） | `MIN_FAILED_CHECKS=3` 或 `4`；`FROZEN_WINDOW=1800` | 降低誤判率，但可能漏判真實斷線 |
+| 遺漏真實斷線 | `MIN_FAILED_CHECKS=2`；`FROZEN_WINDOW=300` | 提高偵測靈敏度，但誤判率上升 |
+| RF 環境嘈雜（多干擾源） | `FROZEN_WINDOW=1800`；`HISTORY_WINDOW=3600` | 需要更長時間的凍結才觸發，容忍暫態干擾 |
+| 高採樣率（`INTERVAL=10s`） | `FROZEN_WINDOW=300`（= 30 次）；注意 CPU 負荷 | 保持合理的凍結判定次數 |
+
 ### CrateDB 設定
 
 | 變數 | 必填 | 預設值 | 說明 |
@@ -180,11 +217,19 @@ services:
 
 ### Climate Monitor
 
-修改 `src/climate_monitor/main.py` 中的日誌等級：
+修改 `.env` 中的 `LOG_LEVEL`：
 
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)  # DEBUG, INFO, WARNING, ERROR
+```env
+LOG_LEVEL=DEBUG  # DEBUG, INFO, WARNING, ERROR
+```
+
+### Stale 事件日誌
+
+驗證失敗事件會寫入獨立檔案（預設 `/app/logs/stale.log`），Docker 掛載於 `./data/monitor_logs/`。
+
+```bash
+# 查看 stale 日誌
+cat docker/data/monitor_logs/stale.log
 ```
 
 ### Docker Compose 日誌

@@ -19,7 +19,18 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     -- 設備狀態
     battery_level INTEGER,         -- 單位：0-100%
     rssi INTEGER,                  -- 單位：dBm
-    
+
+    -- 連線驗證資訊
+    report_interval INTEGER,
+    device_time TEXT,
+    is_valid BOOLEAN,
+    stale_reasons TEXT,
+    failed_checks INTEGER DEFAULT 0,
+    check_rssi_weak BOOLEAN DEFAULT FALSE,
+    check_rssi_frozen BOOLEAN DEFAULT FALSE,
+    check_temp_frozen BOOLEAN DEFAULT FALSE,
+    check_time_frozen BOOLEAN DEFAULT FALSE,
+
     PRIMARY KEY (device_id, ts, month_ts)
 ) CLUSTERED BY (device_id) INTO 1 SHARDS
   PARTITIONED BY (month_ts);
@@ -30,14 +41,20 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
 
 -- 1. 最新狀態視圖：顯示每個設備的最後一筆資料
 CREATE OR REPLACE VIEW latest_readings AS
-SELECT 
+SELECT
     device_name,
     device_id,
-    max(ts) AT TIME ZONE 'Asia/Taipei' as last_seen_asia_taipei,
+    timezone('Asia/Taipei', max(ts)) as last_seen_asia_taipei,
     max_by(temperature, ts) as temperature,
     max_by(humidity, ts) as humidity,
     max_by(battery_level, ts) as battery_level,
-    max_by(rssi, ts) as rssi
+    max_by(rssi, ts) as rssi,
+    max_by(is_valid, ts) as is_valid,
+    max_by(failed_checks, ts) as failed_checks,
+    max_by(check_rssi_weak, ts) as check_rssi_weak,
+    max_by(check_rssi_frozen, ts) as check_rssi_frozen,
+    max_by(check_temp_frozen, ts) as check_temp_frozen,
+    max_by(check_time_frozen, ts) as check_time_frozen
 FROM sensor_readings
 GROUP BY device_name, device_id
 ORDER BY last_seen_asia_taipei DESC, device_name;
@@ -50,75 +67,101 @@ ORDER BY device_name;
 
 -- 2. 每分鐘統計視圖：適合高解析度近即時圖表
 CREATE OR REPLACE VIEW minute_metrics AS
-SELECT 
-    date_trunc('minute', ts AT TIME ZONE 'Asia/Taipei') as minute_asia_taipei,
+SELECT
+    date_trunc('minute', 'Asia/Taipei', ts) as minute_asia_taipei,
     device_name,
     device_id,
     avg(temperature) as avg_temp,
     avg(humidity) as avg_hum,
-    count(*) as samples_count
+    count(*) as samples_count,
+    count(*) FILTER (WHERE is_valid = FALSE) as stale_count
 FROM sensor_readings
 GROUP BY 1, 2, 3
 ORDER BY minute_asia_taipei DESC, device_name;
 
 -- 3. 每小時統計視圖：適合 24 小時趨勢
 CREATE OR REPLACE VIEW hourly_metrics AS
-SELECT 
-    date_trunc('hour', ts AT TIME ZONE 'Asia/Taipei') as hour_asia_taipei,
+SELECT
+    date_trunc('hour', 'Asia/Taipei', ts) as hour_asia_taipei,
     device_name,
     device_id,
     avg(temperature) as avg_temp,
     min(temperature) as min_temp,
     max(temperature) as max_temp,
     avg(humidity) as avg_hum,
-    count(*) as samples_count
+    count(*) as samples_count,
+    count(*) FILTER (WHERE is_valid = FALSE) as stale_count
 FROM sensor_readings
 GROUP BY 1, 2, 3
 ORDER BY hour_asia_taipei DESC, device_name;
 
 -- 4. 每日統計視圖：適合月報表
 CREATE OR REPLACE VIEW daily_stats AS
-SELECT 
-    date_trunc('day', ts AT TIME ZONE 'Asia/Taipei') as day_asia_taipei,
+SELECT
+    date_trunc('day', 'Asia/Taipei', ts) as day_asia_taipei,
     device_name,
     device_id,
     avg(temperature) as avg_temp,
     max(temperature) as max_temp,
     min(temperature) as min_temp,
     avg(humidity) as avg_hum,
-    min(battery_level) as min_battery
+    min(battery_level) as min_battery,
+    count(*) as samples_count,
+    count(*) FILTER (WHERE is_valid = FALSE) as stale_count
 FROM sensor_readings
 GROUP BY 1, 2, 3
 ORDER BY day_asia_taipei DESC, device_name;
 
 -- 5. 每週統計視圖：適合長期趨勢觀察
 CREATE OR REPLACE VIEW weekly_stats AS
-SELECT 
-    date_trunc('week', ts AT TIME ZONE 'Asia/Taipei') as week_asia_taipei,
-    device_name,
-    device_id,
-    avg(temperature) as avg_temp,
-    max(temperature) as max_temp,
-    min(temperature) as min_temp,
-    avg(humidity) as avg_hum
-FROM sensor_readings
-GROUP BY 1, 2, 3
-ORDER BY week_asia_taipei DESC, device_name;
-
--- 6. 每月統計視圖：適合年度總結
-CREATE OR REPLACE VIEW monthly_stats AS
-SELECT 
-    date_trunc('month', ts AT TIME ZONE 'Asia/Taipei') as month_asia_taipei,
+SELECT
+    date_trunc('week', 'Asia/Taipei', ts) as week_asia_taipei,
     device_name,
     device_id,
     avg(temperature) as avg_temp,
     max(temperature) as max_temp,
     min(temperature) as min_temp,
     avg(humidity) as avg_hum,
-    min(battery_level) as min_battery
+    count(*) as samples_count,
+    count(*) FILTER (WHERE is_valid = FALSE) as stale_count
+FROM sensor_readings
+GROUP BY 1, 2, 3
+ORDER BY week_asia_taipei DESC, device_name;
+
+-- 6. 每月統計視圖：適合年度總結
+CREATE OR REPLACE VIEW monthly_stats AS
+SELECT
+    date_trunc('month', 'Asia/Taipei', ts) as month_asia_taipei,
+    device_name,
+    device_id,
+    avg(temperature) as avg_temp,
+    max(temperature) as max_temp,
+    min(temperature) as min_temp,
+    avg(humidity) as avg_hum,
+    min(battery_level) as min_battery,
+    count(*) as samples_count,
+    count(*) FILTER (WHERE is_valid = FALSE) as stale_count
 FROM sensor_readings
 GROUP BY 1, 2, 3
 ORDER BY month_asia_taipei DESC, device_name;
+
+-- 7. Stale 事件視圖：感測器資料不可信事件
+CREATE OR REPLACE VIEW stale_events AS
+SELECT
+    timezone('Asia/Taipei', ts) as event_time_asia_taipei,
+    device_name,
+    device_id,
+    stale_reasons,
+    failed_checks,
+    check_rssi_weak,
+    check_rssi_frozen,
+    check_temp_frozen,
+    check_time_frozen,
+    rssi,
+    battery_level
+FROM sensor_readings
+WHERE is_valid = FALSE
+ORDER BY ts DESC;
 
 -- -----------------------------------------------------------------------------
 -- 常用查詢範例 (Query Usage Examples)

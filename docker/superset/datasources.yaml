@@ -10,8 +10,9 @@ databases:
         columns:
           - column_name: ts
             expression: "timezone('Asia/Taipei', ts)"
-            type: DATETIME
+            type: TIMESTAMP
             is_dttm: true
+            python_date_format: "epoch_ms"
             verbose_name: "Time"
           - column_name: device_id
             type: STRING
@@ -25,6 +26,27 @@ databases:
             type: INTEGER
           - column_name: rssi
             type: INTEGER
+          - column_name: is_valid
+            type: BOOLEAN
+            verbose_name: "Valid"
+          - column_name: stale_reasons
+            type: STRING
+            verbose_name: "Stale Reasons"
+          - column_name: failed_checks
+            type: INTEGER
+            verbose_name: "Failed Checks"
+          - column_name: check_rssi_weak
+            type: BOOLEAN
+            verbose_name: "RSSI Weak"
+          - column_name: check_rssi_frozen
+            type: BOOLEAN
+            verbose_name: "RSSI Frozen"
+          - column_name: check_temp_frozen
+            type: BOOLEAN
+            verbose_name: "Temp Frozen"
+          - column_name: check_time_frozen
+            type: BOOLEAN
+            verbose_name: "Time Frozen"
       # - table_name: minute_metrics
       #   schema: doc
       #   description: "Minute-level Aggregated Metrics (Taipei Time)"

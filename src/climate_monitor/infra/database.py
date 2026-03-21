@@ -21,6 +21,15 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     humidity DOUBLE PRECISION,
     battery_level INTEGER,
     rssi INTEGER,
+    report_interval INTEGER,
+    device_time TEXT,
+    is_valid BOOLEAN,
+    stale_reasons TEXT,
+    failed_checks INTEGER DEFAULT 0,
+    check_rssi_weak BOOLEAN DEFAULT FALSE,
+    check_rssi_frozen BOOLEAN DEFAULT FALSE,
+    check_temp_frozen BOOLEAN DEFAULT FALSE,
+    check_time_frozen BOOLEAN DEFAULT FALSE,
     month_ts TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS date_trunc('month', ts),
     PRIMARY KEY (device_id, ts, month_ts)
 ) CLUSTERED BY (device_id) INTO 1 SHARDS
@@ -30,14 +39,20 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
 CREATE_VIEWS_SQL = [
     """
     CREATE OR REPLACE VIEW latest_readings AS
-    SELECT 
+    SELECT
         device_name,
         device_id,
-        max(ts) AT TIME ZONE 'Asia/Taipei' as last_seen_asia_taipei,
+        timezone('Asia/Taipei', max(ts)) as last_seen_asia_taipei,
         max_by(temperature, ts) as temperature,
         max_by(humidity, ts) as humidity,
         max_by(battery_level, ts) as battery_level,
-        max_by(rssi, ts) as rssi
+        max_by(rssi, ts) as rssi,
+        max_by(is_valid, ts) as is_valid,
+        max_by(failed_checks, ts) as failed_checks,
+        max_by(check_rssi_weak, ts) as check_rssi_weak,
+        max_by(check_rssi_frozen, ts) as check_rssi_frozen,
+        max_by(check_temp_frozen, ts) as check_temp_frozen,
+        max_by(check_time_frozen, ts) as check_time_frozen
     FROM sensor_readings
     GROUP BY device_name, device_id
     ORDER BY last_seen_asia_taipei DESC, device_name
@@ -50,81 +65,107 @@ CREATE_VIEWS_SQL = [
     """,
     """
     CREATE OR REPLACE VIEW minute_metrics AS
-    SELECT 
-        date_trunc('minute', ts AT TIME ZONE 'Asia/Taipei') as minute_asia_taipei,
+    SELECT
+        date_trunc('minute', 'Asia/Taipei', ts) as minute_asia_taipei,
         device_name,
         device_id,
         avg(temperature) as avg_temp,
         avg(humidity) as avg_hum,
-        count(*) as samples_count
+        count(*) as samples_count,
+        count(*) FILTER (WHERE is_valid = FALSE) as stale_count
     FROM sensor_readings
     GROUP BY 1, 2, 3
     ORDER BY minute_asia_taipei DESC, device_name
     """,
     """
     CREATE OR REPLACE VIEW hourly_metrics AS
-    SELECT 
-        date_trunc('hour', ts AT TIME ZONE 'Asia/Taipei') as hour_asia_taipei,
+    SELECT
+        date_trunc('hour', 'Asia/Taipei', ts) as hour_asia_taipei,
         device_name,
         device_id,
         avg(temperature) as avg_temp,
         min(temperature) as min_temp,
         max(temperature) as max_temp,
         avg(humidity) as avg_hum,
-        count(*) as samples_count
+        count(*) as samples_count,
+        count(*) FILTER (WHERE is_valid = FALSE) as stale_count
     FROM sensor_readings
     GROUP BY 1, 2, 3
     ORDER BY hour_asia_taipei DESC, device_name
     """,
     """
     CREATE OR REPLACE VIEW daily_stats AS
-    SELECT 
-        date_trunc('day', ts AT TIME ZONE 'Asia/Taipei') as day_asia_taipei,
+    SELECT
+        date_trunc('day', 'Asia/Taipei', ts) as day_asia_taipei,
         device_name,
         device_id,
         avg(temperature) as avg_temp,
         max(temperature) as max_temp,
         min(temperature) as min_temp,
         avg(humidity) as avg_hum,
-        min(battery_level) as min_battery
+        min(battery_level) as min_battery,
+        count(*) as samples_count,
+        count(*) FILTER (WHERE is_valid = FALSE) as stale_count
     FROM sensor_readings
     GROUP BY 1, 2, 3
     ORDER BY day_asia_taipei DESC, device_name
     """,
     """
     CREATE OR REPLACE VIEW weekly_stats AS
-    SELECT 
-        date_trunc('week', ts AT TIME ZONE 'Asia/Taipei') as week_asia_taipei,
-        device_name,
-        device_id,
-        avg(temperature) as avg_temp,
-        max(temperature) as max_temp,
-        min(temperature) as min_temp,
-        avg(humidity) as avg_hum
-    FROM sensor_readings
-    GROUP BY 1, 2, 3
-    ORDER BY week_asia_taipei DESC, device_name
-    """,
-    """
-    CREATE OR REPLACE VIEW monthly_stats AS
-    SELECT 
-        date_trunc('month', ts AT TIME ZONE 'Asia/Taipei') as month_asia_taipei,
+    SELECT
+        date_trunc('week', 'Asia/Taipei', ts) as week_asia_taipei,
         device_name,
         device_id,
         avg(temperature) as avg_temp,
         max(temperature) as max_temp,
         min(temperature) as min_temp,
         avg(humidity) as avg_hum,
-        min(battery_level) as min_battery
+        count(*) as samples_count,
+        count(*) FILTER (WHERE is_valid = FALSE) as stale_count
+    FROM sensor_readings
+    GROUP BY 1, 2, 3
+    ORDER BY week_asia_taipei DESC, device_name
+    """,
+    """
+    CREATE OR REPLACE VIEW monthly_stats AS
+    SELECT
+        date_trunc('month', 'Asia/Taipei', ts) as month_asia_taipei,
+        device_name,
+        device_id,
+        avg(temperature) as avg_temp,
+        max(temperature) as max_temp,
+        min(temperature) as min_temp,
+        avg(humidity) as avg_hum,
+        min(battery_level) as min_battery,
+        count(*) as samples_count,
+        count(*) FILTER (WHERE is_valid = FALSE) as stale_count
     FROM sensor_readings
     GROUP BY 1, 2, 3
     ORDER BY month_asia_taipei DESC, device_name
+    """,
     """
+    CREATE OR REPLACE VIEW stale_events AS
+    SELECT
+        timezone('Asia/Taipei', ts) as event_time_asia_taipei,
+        device_name,
+        device_id,
+        stale_reasons,
+        failed_checks,
+        check_rssi_weak,
+        check_rssi_frozen,
+        check_temp_frozen,
+        check_time_frozen,
+        rssi,
+        battery_level
+    FROM sensor_readings
+    WHERE is_valid = FALSE
+    ORDER BY ts DESC
+    """,
 ]
 
 INSERT_SQL = """
-INSERT INTO sensor_readings (ts, device_id, device_name, temperature, humidity, battery_level, rssi)
-VALUES (?, ?, ?, ?, ?, ?, ?)
+INSERT INTO sensor_readings (ts, device_id, device_name, temperature, humidity, battery_level, rssi, report_interval, device_time, is_valid, stale_reasons, failed_checks, check_rssi_weak, check_rssi_frozen, check_temp_frozen, check_time_frozen)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
 
 
@@ -208,13 +249,22 @@ class CrateDBClient:
             cursor.execute(
                 INSERT_SQL,
                 (
-                    reading.timestamp.isoformat(),  # 轉換為 ISO 8601 字串
+                    reading.timestamp.isoformat(),
                     reading.device_id,
                     reading.device_name,
                     reading.temperature,
                     reading.humidity,
                     reading.battery_level,
                     reading.rssi,
+                    reading.report_interval,
+                    reading.device_time,
+                    reading.is_valid,
+                    reading.stale_reasons,
+                    reading.failed_checks,
+                    reading.check_rssi_weak,
+                    reading.check_rssi_frozen,
+                    reading.check_temp_frozen,
+                    reading.check_time_frozen,
                 ),
             )
 
@@ -233,13 +283,22 @@ class CrateDBClient:
         with self._get_cursor() as cursor:
             values = [
                 (
-                    r.timestamp.isoformat(),  # 轉換為 ISO 8601 字串
+                    r.timestamp.isoformat(),
                     r.device_id,
                     r.device_name,
                     r.temperature,
                     r.humidity,
                     r.battery_level,
                     r.rssi,
+                    r.report_interval,
+                    r.device_time,
+                    r.is_valid,
+                    r.stale_reasons,
+                    r.failed_checks,
+                    r.check_rssi_weak,
+                    r.check_rssi_frozen,
+                    r.check_temp_frozen,
+                    r.check_time_frozen,
                 )
                 for r in readings
             ]

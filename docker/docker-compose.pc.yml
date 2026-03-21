@@ -16,7 +16,7 @@ services:
       - "4500:4200"   # HTTP 管理介面
       - "5432:5432"   # PostgreSQL 連線協定
     volumes:
-      - cratedb_data:/data
+      - ./data/cratedb:/data
     environment:
       - CRATE_HEAP_SIZE=2g
     command: >
@@ -53,8 +53,6 @@ services:
     depends_on:
       cratedb:
         condition: service_healthy
-    # 使用 host 網路以存取區域網路上的 Tapo 設備
-    # network_mode: host
     deploy:
       resources:
         limits:
@@ -92,7 +90,7 @@ services:
     container_name: superset-cache
     restart: unless-stopped
     volumes:
-      - redis_data:/data
+      - ./data/redis:/data
 
 
   # Superset Metadata DB
@@ -107,7 +105,13 @@ services:
       POSTGRES_USER: ${SUPERSET_POSTGRES_USER:-superset}
       POSTGRES_PASSWORD: ${SUPERSET_POSTGRES_PASSWORD:-superset}
     volumes:
-      - db_home:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SUPERSET_POSTGRES_USER:-superset}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 
   # Superset Web Server
@@ -127,11 +131,12 @@ services:
     ports:
       - "8088:8088"
     depends_on:
-      - superset-db
-      - redis
+      superset-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
-      - superset_home:/app/superset_home
-    # Increase timeout for initial start
+      - ./data/superset:/app/superset_home
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
       interval: 30s
@@ -140,12 +145,14 @@ services:
 
 
 
-  # Superset Initialization
+  # Superset 一次性初始化（建立管理員帳號、設定資料源）
+  # 使用方式：docker compose --profile init up superset-init
   superset-init:
     build:
       context: .
       dockerfile: superset/Dockerfile
     container_name: superset-init
+    restart: "no"
     command: ["/app/docker/superset/superset-init.sh"]
     env_file:
       - ../.env
@@ -154,12 +161,8 @@ services:
     depends_on:
       - superset
     volumes:
-      - superset_home:/app/superset_home
-      - ./superset/superset-init.sh:/app/docker/superset/superset-init.sh
-      - ./superset/datasources.yaml:/app/docker/superset/datasources.yaml
-
-volumes:
-  cratedb_data:
-  superset_home:
-  db_home:
-  redis_data:
+      - ./data/superset:/app/superset_home
+      - ./docker/superset/superset-init.sh:/app/docker/superset/superset-init.sh
+      - ./docker/superset/datasources.yaml:/app/docker/superset/datasources.yaml
+    profiles:
+      - init

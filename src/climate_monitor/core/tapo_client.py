@@ -144,6 +144,16 @@ class TapoClient:
             rssi_feature = features.get("rssi")
             rssi = int(rssi_feature.value) if rssi_feature else 0
 
+            # 擷取回報間隔
+            report_interval_feature = features.get("report_interval")
+            report_interval = (
+                int(report_interval_feature.value) if report_interval_feature else 0
+            )
+
+            # 擷取裝置時間
+            device_time_feature = features.get("device_time")
+            device_time = str(device_time_feature.value) if device_time_feature else ""
+
             return SensorReading.create(
                 device_id=device.device_id,
                 device_name=device.alias or device.model,
@@ -151,6 +161,8 @@ class TapoClient:
                 humidity=humidity,
                 battery_level=battery_level,
                 rssi=rssi,
+                report_interval=report_interval,
+                device_time=device_time,
             )
 
         except Exception as e:
