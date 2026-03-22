@@ -118,9 +118,28 @@ H200 Hub 的 API 不提供子裝置的連線狀態，感測器斷線後 Hub 仍�
 
 - **`is_valid` (BOOLEAN)**：明確標記每筆資料的可信度，讓下游查詢和儀表板可透過 `WHERE is_valid = TRUE` 過濾不可信數據，無需知道驗證邏輯的細節。
 - **`temperature`/`humidity` 寫入 NULL**：Stale 資料不保留溫溼度值，確保 `AVG(temperature)` 等聚合函式自動排除不可信數據，避免需要額外的 `WHERE` 條件。選擇 NULL 而非哨兵值（如 -999）是為了符合 SQL 語意慣例。
-- **`stale_reasons` (TEXT)**：以分號分隔的失敗檢查描述（如 `"RSSI frozen at -80 dBm for 5 consecutive polls; Temperature (25.3) and humidity (62.1) frozen for 5 consecutive polls"`），供運維人員查詢 `SELECT device_name, stale_reasons FROM sensor_readings WHERE is_valid = FALSE` 快速診斷感測器問題（RF 干擾、電池耗盡、距離過遠等）。
+- **`stale_reasons` (TEXT)**：以分號分隔的失敗檢查描述（如 `"RSSI frozen at -80 dBm for 10 consecutive polls; Temperature (25.3) and humidity (62.1) frozen for 10 consecutive polls"`），供運維人員查詢 `SELECT device_name, stale_reasons FROM sensor_readings WHERE is_valid = FALSE` 快速診斷感測器問題（RF 干擾、電池耗盡、距離過遠等）。
 - **四項 check 布林旗標**：各自記錄該筆資料在哪些項目上失敗，便於統計分析（例如：「某感測器 80% 的 stale 事件都是 RSSI 凍結觸發的，代表 RF 環境需要改善」）。
 - **`report_interval` 和 `device_time` 保留**：即使資料被判定為 stale，這兩個欄位仍保留原始值，提供驗證邏輯的審計軌跡和除錯依據。
+
+#### 連線驗證機制：多重訊號交叉比對
+
+驗證器透過四項獨立訊號偵測 T315 是否仍與 Hub 保持有效連線。「凍結」指數值連續多次完全不變——正常感測器即使環境穩定也會有微小浮動，完全不動代表 Hub 在重播快取舊資料。
+
+**四項檢查與掃描次數：**
+
+| # | 檢查 | 預設掃描次數 | 設定來源 | 確定性 |
+|---|------|-------------|----------|--------|
+| 1 | RSSI 弱（絕對門檻） | 每次即判 | `VALIDATOR_RSSI_THRESHOLD` | 中（訊號可能在門檻邊緣震盪） |
+| 2 | RSSI 凍結 | 10 次（10 分鐘） | `VALIDATOR_FROZEN_WINDOW / COLLECTION_INTERVAL` | 中（短期碰巧相同有可能） |
+| 3 | 溫溼度凍結 | 10 次（10 分鐘） | `VALIDATOR_FROZEN_WINDOW / COLLECTION_INTERVAL` | 中（恆溫環境下短期不變是可能的） |
+| 4 | device_time 凍結 | 3 次（3 分鐘） | `VALIDATOR_TIME_FROZEN_THRESHOLD` | 高（裝置時鐘必定遞增，不動即斷線） |
+
+device_time 門檻較低的原因：溫溼度和 RSSI 有自然巧合的可能性，需要較長的觀察窗口排除；device_time 是裝置內部時鐘，只要 T315 還活著就必定遞增，因此 3 次即可確認。
+
+**為何不能只看 device_time？** 因為 device_time 可能本身就是空值（韌體未正確回報），且 Hub 快取可能「部分更新」（時間戳更新但感測資料未更新，或反之）。因此需要多項檢查中至少 3 項同時失敗（`MIN_FAILED_CHECKS=3`）才判定為 stale，在「不漏報」和「不誤報」之間取得平衡。
+
+預設值針對半開放牧場環境調校，詳見 [進階配置 — 連線狀態驗證設定](configuration.md#連線狀態驗證設定)。
 
 ### 統計 Views
 

@@ -47,11 +47,11 @@ class Settings(BaseSettings):
 
     # 連線狀態驗證設定（共 4 項檢查：RSSI 弱、RSSI 凍結、溫溼度凍結、device_time 凍結）
     validator_rssi_threshold: int = Field(
-        default=-95,      # 預設 -95 dBm
+        default=-85,      # 預設 -85 dBm（半開放牧場環境建議值）
         description="RSSI 門檻（dBm），低於此值視為訊號過弱",
     )
     validator_frozen_window: int = Field(
-        default=900,      # 預設 900 秒（15 分鐘）
+        default=600,      # 預設 600 秒（10 分鐘，半開放牧場環境建議值）
         ge=60,            # 最小值 60 秒（防止誤判）
         description="凍結判定時間窗口（秒），連續此時間內資料不變即視為過時",
     )
@@ -59,6 +59,12 @@ class Settings(BaseSettings):
         default=1800,     # 預設 1800 秒（30 分鐘）
         ge=300,           # 最小值 300 秒（5 分鐘）
         description="驗證器每裝置歷史記錄時間窗口（秒）",
+    )
+    validator_time_frozen_threshold: int = Field(
+        default=3,        # 預設 3 次（device_time 停止遞增即為強斷線訊號）
+        ge=2,             # 最小值 2 次（至少觀察 2 次才判定）
+        le=10,            # 最大值 10 次
+        description="device_time 連續相同幾次即判定凍結",
     )
     validator_min_failed_checks: int = Field(
         default=3,        # 預設 3 項（4 項中至少 3 項失敗才判定 stale）

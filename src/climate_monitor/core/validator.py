@@ -57,11 +57,13 @@ class T315ConnectionValidator:
         max_frozen_count: int = 5,
         history_size: int = 20,
         min_failed_checks: int = 2,
+        time_frozen_threshold: int = 3,
     ) -> None:
         self._rssi_threshold = rssi_threshold
         self._max_frozen_count = max_frozen_count
         self._history_size = history_size
         self._min_failed_checks = min_failed_checks
+        self._time_frozen_threshold = time_frozen_threshold
         self._histories: dict[str, deque[SensorSnapshot]] = {}
 
     def _get_history(self, device_id: str) -> deque[SensorSnapshot]:
@@ -127,7 +129,7 @@ class T315ConnectionValidator:
                     same_time_count += 1
                 else:
                     break
-            if same_time_count >= 3:
+            if same_time_count >= self._time_frozen_threshold:
                 chk_time_frozen = True
                 reasons.append(
                     f"device_time stuck at {snapshot.device_time} "

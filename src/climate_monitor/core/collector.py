@@ -47,6 +47,7 @@ class SensorCollector:
             max_frozen_count=settings.validator_max_frozen_count,
             history_size=settings.validator_history_size,
             min_failed_checks=settings.validator_min_failed_checks,
+            time_frozen_threshold=settings.validator_time_frozen_threshold,
         )
 
     @property
