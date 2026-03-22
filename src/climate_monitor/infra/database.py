@@ -36,6 +36,17 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
   PARTITIONED BY (month_ts)
 """
 
+# 確保舊表補齊新欄位（CREATE TABLE IF NOT EXISTS 不會自動新增欄位）
+MIGRATE_COLUMNS_SQL = [
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS is_valid BOOLEAN",
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS stale_reasons TEXT",
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS failed_checks INTEGER DEFAULT 0",
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS check_rssi_weak BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS check_rssi_frozen BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS check_temp_frozen BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS check_time_frozen BOOLEAN DEFAULT FALSE",
+]
+
 CREATE_VIEWS_SQL = [
     """
     CREATE OR REPLACE VIEW latest_readings AS
@@ -227,16 +238,27 @@ class CrateDBClient:
             self._connection = None
 
     def initialize_schema(self) -> None:
-        """建立 sensor_readings 資料表與 Views（如不存在）。"""
+        """建立 sensor_readings 資料表與 Views（如不存在）。
+
+        若資料表已存在但缺少新版欄位，會自動透過 ALTER TABLE 補齊。
+        """
         logger.info("正在初始化資料庫 Schema")
         with self._get_cursor() as cursor:
             # 建立資料表
             cursor.execute(CREATE_TABLE_SQL)
-            
+
+            # 補齊舊表可能缺少的欄位
+            for alter_sql in MIGRATE_COLUMNS_SQL:
+                try:
+                    cursor.execute(alter_sql)
+                except Exception:
+                    # 欄位已存在時 CrateDB 會拋出異常，安全忽略
+                    pass
+
             # 建立 Views
             for view_sql in CREATE_VIEWS_SQL:
                 cursor.execute(view_sql)
-                
+
         logger.info("Schema 初始化完成")
 
     def insert_reading(self, reading: SensorReading) -> None:
